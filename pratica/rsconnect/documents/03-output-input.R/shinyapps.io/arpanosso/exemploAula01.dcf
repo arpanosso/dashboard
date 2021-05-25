@@ -1,0 +1,14 @@
+name: exemploAula01
+title: exemploAula01
+username:
+account: arpanosso
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4179855
+bundleId: 4635410
+url: https://arpanosso.shinyapps.io/exemploAula01/
+when: 1621904133.70467
+lastSyncTime: 1621904133.70467
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 01-ola-mundo.R|02-output.R

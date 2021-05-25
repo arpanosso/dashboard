@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Dashboards com R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/custom-intro.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Dashboards com R
+## Layouts
+### <img src = 'https://d33wubrfki0l68.cloudfront.net/9b0699f18268059bdd2e5c21538a29eade7cbd2b/67e5c/img/logo/cursor1-5.png' width = '30%'>
+### Setembro de 2020
+
+---
+
+
+
+
+
+
+## HTML
+
+HTML é uma [linguagem de marcação](https://pt.wikipedia.org/wiki/Linguagem_de_marca%C3%A7%C3%A3o) para construir páginas web. 
+
+Uma linguagem de marcação é apenas um tipo de documento que contem texto simples (como em um bloco de notas) e um conjunto de instruções para formatar (anotar, marcar) parte específicas do conteúdo. Além do HTML, o LaTeX e o (R) Markdown são outros exemplos comuns de linguagem de marcação.
+
+A maior parte do esforço em aprender uma linguagem de marcação está em aprender quais são e como utilizar as instruções de formatação.
+
+---
+
+## Tags HTML
+
+No HTML, as instrução de formatação são chamadas *tags*. Utilizaremos as *tags* para formatar qualquer elemento da página web que estamos criando. Com elas, podemos, por exemplo, transformar um texto em negrito ou itálico, criar títulos e inserir imagens. 
+
+O pacote `shiny` traz diversas funções que simulam essas tags, nos permitindo usá-las livremente na UI para melhor formatar o nosso app. As principais são:
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; função &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; para que serve &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; a() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; cria um hiperlink &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; hr() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; cria uma linha horizontal &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; br() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; insere uma quebra de linha &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; h1(), ..., h6() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; cria títulos &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; img() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; insere uma imagem &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; p() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; cria um parágrafo &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; em() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; formata o texto em itálico &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; strong() &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; formata o texto em negrito &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+&lt;br&gt;&lt;br&gt;
+
+O código Shiny abaixo, por exemplo, gera o código HTML a seguir.
+
+
+```r
+#ui
+fluidPage(
+  h1("Meu Primeiro Shiny App"),
+  p(
+    "O link para o site do Shiny é ",
+    a(href = "https://www.rstudio.com/shiny/", "rstudio.com/shiny."),
+    strong("Recomendo fortemente que você dê uma olhada!")
+  )
+)
+```
+
+
+```html
+&lt;div class="container-fluid"&gt;
+  &lt;h1&gt;Meu Primeiro Shiny App&lt;/h1&gt;
+  &lt;p&gt;
+    O link para o site do Shiny é 
+    &lt;a href="https://www.rstudio.com/shiny/"&gt;rstudio.com/shiny.&lt;/a&gt;
+    &lt;strong&gt;Recomendo fortemente que você dê uma olhada!&lt;/strong&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Que, por sua vez, gera o seguinte documento web:
+
+
+```html
+&lt;!-- HTML --&gt;
+&lt;div class="container-fluid"&gt;
+  &lt;h1&gt;Meu Primeiro Shiny App&lt;/h1&gt;
+  &lt;p&gt;
+    O link para o site do Shiny é 
+    &lt;a href="https://www.rstudio.com/shiny/"&gt;rstudio.com/shiny.&lt;/a&gt;
+    &lt;strong&gt;Recomendo fortemente que você dê uma olhada!&lt;/strong&gt;
+  &lt;/p&gt;
+&lt;/div&gt;
+```
+
+<h1>Meu Primeiro Shiny App</h1>
+<p>
+O link para o site do Shiny é 
+<a href="https://www.rstudio.com/shiny/">rstudio.com/shiny.</a>
+<strong>Recomendo fortemente que você dê uma olhada!</strong>
+</p>
+
+---
+## Atividade
+
+Vamos ver um pequeno exemplo de como uma página web é construída em HTML.
+
+&lt;br&gt;
+
+&lt;center&gt;
+&lt;img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300"&gt;
+&lt;br&gt;
+&lt;br&gt;
+<span style="color:#6495ed; font-weight: bold;">Ao RStudio: 10-exemplo-html.html</span>
+&lt;center&gt;
+
+---
+## Sistema de grades (Grid system)
+
+O layout de um Shiny app segue o *grid system* do [Bootstrap Framework](https://getbootstrap.com.br/docs/4.1/getting-started/introduction/) do Twitter. Esse layout estabelece que:
+
+1. os elementos serão dispostos primeiramente em linhas (alinhamento horizontal);
+2. cada nova linha será colocada embaixo da anterior;
+3. cada linha será dividida em colunas, para dispormos os elementos horizontalmente;
+4. o comprimento da página será dividido em 12 unidades, independentemente do tamanho da tela.
+
+&lt;center&gt;
+&lt;img src="img/gridsystem.jpg" width = 80%&gt;
+&lt;br&gt;
+Fonte: &lt;a href = https://dzone.com/articles/working-with-bootstrap-4-grid-system-for-creating&gt;dzone.com/articles/working-with-bootstrap-4-grid-system-for-creatin&lt;/a&gt;
+&lt;/center&gt;
+
+---
+## Linhas e colunas
+
+Para criar novas linhas, utilizamos a função `fluidRow()`. Dentro dessa função, colocamos tudo que queremos mostrar em uma dada linha.
+
+Para criar colunas dentro de uma linha, utilizamos a função `column()`. Essa função tem dois argumentos: `width` e `offset`. O primeiro determina o comprimento da coluna (de 1 a 12). O segundo indica quanto espaço horizontal gostaríamos de "pular" antes de começar a nossa coluna.
+
+&lt;center&gt;
+&lt;img src="img/gridsystem2.png"&gt;
+&lt;br&gt;
+
+---
+## Atividade
+
+Vamos fazer um Shiny app para observar o grid system na prática.
+
+&lt;br&gt;
+
+&lt;center&gt;
+&lt;img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300"&gt;
+&lt;br&gt;
+&lt;br&gt;
+<span style="color:#6495ed; font-weight: bold;">Ao RStudio: 11-gridsystem.R</span>
+&lt;center&gt;
+
+
+---
+## Layouts
+
+O pacote `shiny` fornece alguns layouts padrão. Os principais são:
+
+- `sidebarLayout()`: para criar um aplicativo com uma barra lateral.
+
+- `navbarPage()`: para criar um aplicativo com um menu de navegação no topo da tela.
+
+---
+## sidebarLayout
+
+Para criar um layout com barra lateral, utilizamos a estrutura a seguir.
+
+
+```r
+ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+    sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Esse código geraria um app com a seguinte UI:
+
+&lt;img src = "img/sidebarLayout.png"&gt;
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Todos os elementos do layout são colocados dentro da função `fluidPage()`.
+
+
+```r
+*ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+    sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+*) 
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+A função `titlePanel()` é utilizada para inserirmos um título no app.
+
+
+```r
+ui &lt;- fluidPage(
+* titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+    sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Especificamos o layout com a função `sidebarLayout()`.
+
+
+```r
+ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+* sidebarLayout(
+    sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+* )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Criamos uma barra lateral com a função `sidebarPanel()`.
+
+
+```r
+ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+*   sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+*   ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Dentro do `sidebarPanel()`, colocamos tudo o que queremos que apareça na barra lateral. No exemplo, teremos um slider.
+
+
+```r
+ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+    sidebarPanel(
+*     sliderInput(
+*       "num",
+*       "Número de observações:",
+*       min = 0,
+*       max = 1000,
+*       value = 500
+*     )
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Por fim, utilizamos a função `mainPanel()` para especificar tudo o que aparecerá na área principal do app. No exemplo, teremos apenas um gráfico.
+
+
+```r
+ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+    sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+    ),
+*   mainPanel(
+      plotOutput("hist")
+*   )
+  ) 
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+No exemplo, teremos apenas um gráfico na área principal do app.
+
+
+```r
+ui &lt;- fluidPage(
+  titlePanel("Shiny com sidebarLayout"),
+  sidebarLayout( 
+    sidebarPanel(
+      sliderInput(
+        "num",
+        "Número de observações:",
+        min = 0,
+        max = 1000,
+        value = 500
+      )
+    ),
+    mainPanel(
+*     plotOutput("hist")
+    )
+  )
+)
+```
+
+---
+## Atividade
+
+Vamos fazer um Shiny app com `sidebarLayout()`.
+
+&lt;br&gt;
+
+&lt;center&gt;
+&lt;img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300"&gt;
+&lt;br&gt;
+&lt;br&gt;
+<span style="color:#6495ed; font-weight: bold;">Ao RStudio: 12-sidebarLayout.R</span>
+&lt;center&gt;
+
+---
+## navbarPage
+
+Para criar um layout com menu de navegação superior, utilizamos a função `navbarPage()` e a estrutura a seguir.
+
+
+```r
+ui &lt;- navbarPage(
+  title = "Shiny com navbarPage",
+  tabPanel(title = "Painel 1"),
+  tabPanel(title = "Painel 2"),
+  tabPanel(title = "Painel 3"),
+  navbarMenu(
+    title = "Mais opções",
+    tabPanel(title = "Item 1"),
+    tabPanel(title = "Item 2"),
+    tabPanel(title = "Item 3")
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Essa estrutura vai originar o seguinte layout. Cada opção da barra superior mostra uma página diferente do aplicativo.
+
+&lt;img src = "img/navbarpage.png"&gt;
+
+---
+&lt;br&gt;&lt;br&gt;
+
+O argumento `title` da função `navbarPage()` determina o título que aparecerá na barra superior.
+
+
+```r
+ui &lt;- navbarPage(
+* title = "Shiny com navbarPage",
+  tabPanel(title = "Painel 1"),
+  tabPanel(title = "Painel 2"),
+  tabPanel(title = "Painel 3"),
+  navbarMenu(
+    title = "Mais opções",
+    tabPanel(title = "Item 1"),
+    tabPanel(title = "Item 2"),
+    tabPanel(title = "Item 3")
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Com a função `tabPanel()` as criamos diferentes páginas do aplicativo, que são acessadas pela barra superior. O `title` indica o título que aparecerá em cada botão. 
+
+
+```r
+ui &lt;- navbarPage(
+  title = "Shiny com navbarPage",
+* tabPanel(title = "Painel 1"),
+* tabPanel(title = "Painel 2"),
+* tabPanel(title = "Painel 3"),
+  navbarMenu(
+    title = "Mais opções",
+    tabPanel(title = "Item 1"),
+    tabPanel(title = "Item 2"),
+    tabPanel(title = "Item 3")
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+A função `navbarMenu()` nos permite agrupar opções de página em uma caixinha de seleção.
+
+
+```r
+ui &lt;- navbarPage(
+  title = "Shiny com navbarPage",
+  tabPanel(title = "Painel 1"),
+  tabPanel(title = "Painel 2"),
+  tabPanel(title = "Painel 3"),
+* navbarMenu(
+*   title = "Mais opções",
+    tabPanel(title = "Item 1"),
+    tabPanel(title = "Item 2"),
+    tabPanel(title = "Item 3")
+* )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Os itens desse menu também são criados pela função `tabPanel()`, colocadas dentro da função `navbarMenu()`.
+
+
+```r
+ui &lt;- navbarPage(
+  title = "Shiny com navbarPage",
+  tabPanel(title = "Painel 1"),
+  tabPanel(title = "Painel 2"),
+  tabPanel(title = "Painel 3"),
+  navbarMenu(
+    title = "Mais opções", 
+*   tabPanel(title = "Item 1"),
+*   tabPanel(title = "Item 2"),
+*   tabPanel(title = "Item 3")
+  )
+)
+```
+
+---
+&lt;br&gt;&lt;br&gt;
+
+Os inputs e outputs (e qualquer outro elemento da página) são colocados dentro de cada `tabPanel()`.
+
+.tiny[
+
+```r
+ui &lt;- navbarPage(
+  title = "Shiny com navbarPage",
+* tabPanel(
+*   title = "Painel 1",
+*   sliderInput(
+*       "num",
+*       "Número de observações:",
+*       min = 0,
+*       max = 1000,
+*       value = 500
+*   ),
+*   plotOutput("hist")
+* ),
+  tabPanel(title = "Painel 2"),
+  tabPanel(title = "Painel 3"),
+  navbarMenu(
+    title = "Mais opções", 
+    tabPanel(title = "Item 1"),
+    tabPanel(title = "Item 2"), 
+    tabPanel(title = "Item 3") 
+  )
+)
+```
+]
+
+---
+## Atividade
+
+Vamos fazer um Shiny app com `navbarLayout()`.
+
+&lt;br&gt;
+
+&lt;center&gt;
+&lt;img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300"&gt;
+&lt;br&gt;
+&lt;br&gt;
+<span style="color:#6495ed; font-weight: bold;">Ao RStudio: 13-navbarPage.R</span>
+&lt;center&gt;
+
+---
+## Referências e material extra
+
+- [Tutorial de Shiny do Garrett Grolemund](https://shiny.rstudio.com/tutorial/).
+
+- [Guia de layout do Shiny](https://shiny.rstudio.com/articles/layout-guide.html)
+
+- [`bs4Dash`](https://rinterface.github.io/bs4Dash/)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "4:3"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
