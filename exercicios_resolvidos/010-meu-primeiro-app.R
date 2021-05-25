@@ -48,7 +48,5 @@ server <- function(input, output, session) {
 #
 shinyApp(ui, server)
 
-
-
 # https://arpanosso.shinyapps.io/exercicios_resolvidos/
 
