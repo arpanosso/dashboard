@@ -9,9 +9,9 @@
 library(shiny)
 library(dplyr)
 library(readr)
-library(DT)
 
-dados <- readRDS("c:\\github\\dashboard\\dados\\imdb.rds")
+
+dados <- readRDS("../dados/imdb.rds")
 
 ui <- fluidPage(
   "Base - IMDB",
@@ -29,16 +29,15 @@ ui <- fluidPage(
       select(where(is.numeric)) |>
       names()
   ),
-  dataTableOutput("tabela")
+  tableOutput("tabela")
 )
 
 server <- function(input, output, session) {
-  output$tabela <- renderDataTable({
-     # tab<-dados |>
-     #  arrange(desc(input$var_string)) |>
-     #  select(input$var_string,input$var_numerica) |>
-     #  head(20)
-    datatable(dados)
+  output$tabela <- renderTable({
+    dados |>
+       arrange(desc(input$var_string)) |>
+       select(input$var_string,input$var_numerica) |>
+       head(20)
   })
 }
 

@@ -1,0 +1,14 @@
+name: pratica
+title: pratica
+username:
+account: arpanosso
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4197763
+bundleId: 4648763
+url: https://arpanosso.shinyapps.io/pratica/
+when: 1622163795.98245
+lastSyncTime: 1622163795.98245
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 01-ola-mundo.R|02-output.R|03-output-input.R|04-hist-normal.R|05-dois-output.R|06-reactive.R|07-event-reactive.R|08-debug.R
