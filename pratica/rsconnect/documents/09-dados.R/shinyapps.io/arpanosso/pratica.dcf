@@ -5,10 +5,10 @@ account: arpanosso
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4209125
-bundleId: 4660702
+bundleId: 4660844
 url: https://arpanosso.shinyapps.io/pratica/
-when: 1622468581.38319
-lastSyncTime: 1622468581.38319
+when: 1622470385.48847
+lastSyncTime: 1622470385.48847
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: 01-ola-mundo.R|02-output.R|03-output-input.R|04-hist-normal.R|05-dois-output.R|06-reactive.R|07-event-reactive.R|08-debug.R

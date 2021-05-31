@@ -415,7 +415,6 @@ shinyApp(ui, server)</code></pre>
 # de cada tipo que aconteceram naquele mês.
 # O nível territorial (Estado, região, município ou delegacia) também pode
 # ser um filtro.
-#
 
 library(shiny)
 library(dplyr)
@@ -423,9 +422,30 @@ library(tidyr)
 library(ggplot2)
 library(readr)
 library(forcats)
+library(purrr)
 
-ssp&lt;-&quot;../dados/ssp.rds&quot; |&gt;
+ssp1&lt;-&quot;ssp.rds&quot; |&gt;
   read_rds()
+
+ssp_nest &lt;- ssp1 |&gt;
+ pivot_longer(cols = estupro:vit_latrocinio,
+               names_to = &quot;ocorrencia&quot;,
+               values_to = &quot;contagem&quot;) |&gt;
+  group_by(regiao_nome) |&gt;
+  nest() |&gt; drop_na()
+
+make_list &lt;- function(df,col){
+  df |&gt; pull(col) |&gt; unique()
+}
+
+ssp_nest &lt;- ssp_nest |&gt;
+  mutate(
+    lista_1 = map(data,make_list,&quot;municipio_nome&quot;),
+    lista_2 = map(data,make_list,&quot;delegacia_nome&quot;)
+  )
+
+names(ssp_nest$lista_1) &lt;- ssp_nest$regiao_nome
+names(ssp_nest$lista_2) &lt;- ssp_nest$regiao_nome
 
 ui &lt;- fluidPage(
   &quot;Explorando inputs&quot;,
@@ -438,31 +458,25 @@ ui &lt;- fluidPage(
               sep = &quot;&quot;),
   selectInput(inputId = &quot;mes&quot;,
               label = &quot;Selecione o Mês&quot;,
-              choices = 1:12 ),
+              choices = 1:12),
   selectInput(inputId = &quot;regiao&quot;,
               label = &quot;Selecione a Regiao&quot;,
-              choices =  c(&quot;ALL&quot;, ssp |&gt;
+              choices =  c(&quot;ALL&quot;, ssp1 |&gt;
                 pull(regiao_nome) |&gt;
                 as_factor() |&gt;
                 levels())),
   selectInput(inputId = &quot;municipio&quot;,
               label = &quot;Selecione o Município&quot;,
-              choices = c(&quot;ALL&quot;, ssp |&gt;
-                pull(municipio_nome) |&gt;
-                as_factor() |&gt;
-                levels())),
+              choices = c(&quot;ALL&quot;, ssp_nest$lista_1)),
   selectInput(inputId = &quot;delegacia&quot;,
               label = &quot;Selecione a Delegacia&quot;,
-              choices = c(&quot;ALL&quot;, ssp |&gt;
-                pull(delegacia_nome) |&gt;
-                as_factor() |&gt;
-                levels())),
+              choices = c(&quot;ALL&quot;, ssp_nest$lista_2)),
   actionButton(&quot;atualizar&quot;, label = &quot;Gerar Tabela&quot;),
   tableOutput(&quot;tabela&quot;)
 )
 
 server &lt;- function(input, output, session) {
-  ssp &lt;- reactive({read_rds(&quot;../dados/ssp.rds&quot;)})
+  ssp &lt;- reactive({readRDS(&quot;ssp.rds&quot;)})
   output$tabela &lt;- renderTable({
     tabela()
   })
@@ -496,8 +510,6 @@ server &lt;- function(input, output, session) {
         soma_ocorrencia = as.integer(sum(contagem))
       ) |&gt;
     filter(soma_ocorrencia &gt;0)
-
-
   })
 }
 
@@ -711,8 +723,8 @@ server &lt;- function(input, output, session) {
     voos |&gt;
       mutate(data=make_date(year,month,day)) |&gt;
       filter(data==input$data) |&gt;
-      mutate(dep_delay = ifelse(dep_delay&lt;0,0,dep_delay),
-             arr_delay = ifelse(arr_delay&lt;0,0,arr_delay))  |&gt;
+      mutate(dep_delay = if_else(dep_delay&lt;0,0,dep_delay),
+             arr_delay = if_else(arr_delay&lt;0,0,arr_delay))  |&gt;
       summarise(
         `Número de voos` = n(),
         `Atraso médio de partida (min)`=mean(dep_delay,na.rm=TRUE),

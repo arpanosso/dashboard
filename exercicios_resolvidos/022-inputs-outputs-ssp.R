@@ -6,16 +6,36 @@
 # O nível territorial (Estado, região, município ou delegacia) também pode
 # ser um filtro.
 
-
 library(shiny)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(readr)
 library(forcats)
+library(purrr)
 
-ssp<-"../dados/ssp.rds" |>
+ssp1<-"ssp.rds" |>
   read_rds()
+
+ssp_nest <- ssp1 |>
+ pivot_longer(cols = estupro:vit_latrocinio,
+               names_to = "ocorrencia",
+               values_to = "contagem") |>
+  group_by(regiao_nome) |>
+  nest() |> drop_na()
+
+make_list <- function(df,col){
+  df |> pull(col) |> unique()
+}
+
+ssp_nest <- ssp_nest |>
+  mutate(
+    lista_1 = map(data,make_list,"municipio_nome"),
+    lista_2 = map(data,make_list,"delegacia_nome")
+  )
+
+names(ssp_nest$lista_1) <- ssp_nest$regiao_nome
+names(ssp_nest$lista_2) <- ssp_nest$regiao_nome
 
 ui <- fluidPage(
   "Explorando inputs",
@@ -28,31 +48,25 @@ ui <- fluidPage(
               sep = ""),
   selectInput(inputId = "mes",
               label = "Selecione o Mês",
-              choices = 1:12 ),
+              choices = 1:12),
   selectInput(inputId = "regiao",
               label = "Selecione a Regiao",
-              choices =  c("ALL", ssp |>
+              choices =  c("ALL", ssp1 |>
                 pull(regiao_nome) |>
                 as_factor() |>
                 levels())),
   selectInput(inputId = "municipio",
               label = "Selecione o Município",
-              choices = c("ALL", ssp |>
-                pull(municipio_nome) |>
-                as_factor() |>
-                levels())),
+              choices = c("ALL", ssp_nest$lista_1)),
   selectInput(inputId = "delegacia",
               label = "Selecione a Delegacia",
-              choices = c("ALL", ssp |>
-                pull(delegacia_nome) |>
-                as_factor() |>
-                levels())),
+              choices = c("ALL", ssp_nest$lista_2)),
   actionButton("atualizar", label = "Gerar Tabela"),
   tableOutput("tabela")
 )
 
 server <- function(input, output, session) {
-  ssp <- reactive({read_rds("../dados/ssp.rds")})
+  ssp <- reactive({readRDS("ssp.rds")})
   output$tabela <- renderTable({
     tabela()
   })
@@ -86,8 +100,6 @@ server <- function(input, output, session) {
         soma_ocorrencia = as.integer(sum(contagem))
       ) |>
     filter(soma_ocorrencia >0)
-
-
   })
 }
 

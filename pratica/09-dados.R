@@ -15,14 +15,14 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-imdb <- read_rds("../data/imdb.rds")
+imdb <- read_rds("imdb.rds")
   output$tabela <- renderTable({
-    imdb %>%
-      filter(ano %in% input$periodo[1]:input$periodo[2]) %>%
-      select(titulo, ano, diretor, receita, orcamento, nota_imdb) %>%
-      mutate(lucro= receita - orcamento) %>%
-      top_n(20, lucro) %>%
-      arrange(desc(lucro)) %>%
+    imdb |>
+      filter(ano %in% input$periodo[1]:input$periodo[2]) |>
+      select(titulo, ano, diretor, receita, orcamento, nota_imdb) |>
+      mutate(lucro= receita - orcamento) |>
+      top_n(20, lucro) |>
+      arrange(desc(lucro)) |>
       mutate_at(vars(lucro,receita,orcamento), ~scales::dollar(.x))
   })
 

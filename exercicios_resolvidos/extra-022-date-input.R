@@ -36,8 +36,8 @@ server <- function(input, output, session) {
     voos |>
       mutate(data=make_date(year,month,day)) |>
       filter(data==input$data) |>
-      mutate(dep_delay = ifelse(dep_delay<0,0,dep_delay),
-             arr_delay = ifelse(arr_delay<0,0,arr_delay))  |>
+      mutate(dep_delay = if_else(dep_delay<0,0,dep_delay),
+             arr_delay = if_else(arr_delay<0,0,arr_delay))  |>
       summarise(
         `Número de voos` = n(),
         `Atraso médio de partida (min)`=mean(dep_delay,na.rm=TRUE),
