@@ -1,0 +1,602 @@
+---
+title: "Exercícios - Curso Dashboard"
+author: "Panosso, AR"
+date: "31/05/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+# Lição de Casa
+## 010-meu-primeiro-app.R 	
+
+```{r}
+# Meu primeiro shiny app
+#
+# Faça um shiny app para visualizar histogramas da base diamonds
+# e o coloque no shinyapps.io.
+#
+# Seu shiny deve ter um input e um output.
+#
+# - Input: variáveis numéricas da base diamonds.
+# - Output: histograma da variável selecionada.
+#
+# Para acessar a base diamonds, carrege o pacote ggplot2
+#
+# library(ggplot2)
+#
+# ou rode
+#
+# ggplot2::diamonds
+
+library(shiny)
+library(dplyr)
+
+
+## Minha UI
+ui <- fluidPage(
+  "Histograma - Base {ggplot2::diamonds}",
+  selectInput(
+    inputId = "variavel",
+    label = "Selecione a variável",
+    choices = ggplot2::diamonds |>
+      select(where(is.numeric)) |>
+      names()
+  ),
+  plotOutput("histograma")
+)
+
+#Função Server
+server <- function(input, output, session) {
+  output$histograma <- renderPlot({
+    ggplot2::diamonds |>
+      ggplot2::ggplot(ggplot2::aes_string(x=input$variavel)) +
+      ggplot2::geom_histogram(bins=10,
+                              color="black",
+                              fill="lightblue")+
+      ggplot2::theme_bw()
+  })
+}
+
+#
+shinyApp(ui, server)
+
+# https://arpanosso.shinyapps.io/exercicios_resolvidos/
+
+
+```
+
+
+## 011-mey-segundo-app.R 	
+
+```{r}
+# Meu segundo shiny app (agora importando uma base de dados)
+#
+# Escolha uma das bases da pasta dados ou use uma base própria.
+#
+# - Crie um shiny app com pelo menos um input e um output
+# para visualizarmos alguma informação interessante da base.
+#
+# - Suba o app para o shinyapps.io.
+library(shiny)
+library(dplyr)
+library(readr)
+
+
+dados <- readRDS("../dados/imdb.rds")
+
+ui <- fluidPage(
+  "Base - IMDB",
+  selectInput(
+    inputId = "var_string",
+    label = "Selecione a variável fator",
+    choices = dados |>
+      select(-where(is.numeric)) |>
+      names()
+  ),
+  selectInput(
+    inputId = "var_numerica",
+    label = "Selecione a variável numérica",
+    choices = dados |>
+      select(where(is.numeric)) |>
+      names()
+  ),
+  tableOutput("tabela")
+)
+
+server <- function(input, output, session) {
+  output$tabela <- renderTable({
+    dados |>
+       arrange(desc(input$var_string)) |>
+       select(input$var_string,input$var_numerica) |>
+       head(20)
+  })
+}
+
+shinyApp(ui, server)
+
+```
+
+## 020-inputs-outputs-credito.R 	
+```{r}
+# Explorando inputs
+#
+# Utilizando a base de crédito, faça um Shiny app que permite escolher
+# o estado civil, tipo de moradia e/ou trabalho e mostra uma visualização
+# representando a proporção de clientes "bons" e "ruins" da base.
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(forcats)
+
+cradito<-"../dados/credito.rds" |>
+  read_rds()
+
+ui <- fluidPage(
+  "Explorando inputs",
+  selectInput(inputId = "var1",
+              label = "Selecione o Estado Civil",
+              choices =  credito |>
+                pull(estado_civil) |>
+                as_factor() |>
+                levels()),
+  selectInput(inputId = "var2",
+              label = "Selecione o Tipo de Moradia",
+              choices =  credito |>
+                pull(moradia) |>
+                as_factor() |>
+                levels()),
+  selectInput(inputId = "var3",
+              label = "Selecione o Trabalho",
+              choices =  credito |>
+                pull(trabalho) |>
+                as_factor() |>
+                levels()),
+  actionButton("atualizar", label = "Gerar gráfico"),
+  plotOutput("grafico")
+)
+
+
+server <- function(input, output, session) {
+  credito <- read_rds("../dados/credito.rds")
+  output$grafico <- renderPlot({
+    grafico()
+  })
+
+
+  grafico <- eventReactive(input$atualizar,{
+    credito |>
+       filter(estado_civil == input$var1,
+              moradia == input$var2,
+              trabalho == input$var3) |> # browser() |>
+      group_by(status) |>
+      summarise(
+        cont = n()
+      ) |>
+      ggplot(aes(x=status,y=cont))+
+      geom_col(color="black",fill="aquamarine4") +
+      theme_classic()
+  })
+}
+
+shinyApp(ui, server)
+
+```
+
+## 021-inputs-outputs-pokemon.R 
+
+```{r}
+# Explorando inputs
+#
+# Utilizando a base de pokemon, faça um Shiny app que permite escolher
+# um tipo (tipo_1) e uma geração e faça um gráfico de dispersão do ataque
+# vs defesa para os pokemon com essas características.
+
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(forcats)
+
+pokemon<-"../dados/pkmn.rds" |>
+  read_rds()
+
+cor<-c("green","red","blue",
+      "lightgreen","pink","purple",
+      "yellow","coral4","darkorchid4",
+      "darkorange","lavender","grey61",
+      "mediumorchid4","lightblue","lightsalmon4",
+      "violetred4","gray","blue")
+
+tipo<-pokemon |>
+  pull(tipo_1) |>
+  as_factor() |>
+  levels()
+
+cores <- tibble(tipo,cor)
+
+ui <- fluidPage(
+  "Explorando inputs POKEMON",
+  selectInput(inputId = "var1",
+              label = "Selecione um Tipo",
+              choices =  pokemon |>
+                pull(tipo_1) |>
+                as_factor() |>
+                levels()),
+  selectInput(inputId = "var2",
+              label = "Selecione uma Geração",
+              choices =  pokemon |>
+                pull(id_geracao) |>
+                as_factor() |>
+                levels()),
+  plotOutput("grafico")
+)
+
+server <- function(input, output, session) {
+  credito <- read_rds("../dados/credito.rds")
+  output$grafico <- renderPlot({
+    pokemon |>
+      filter(tipo_1 == input$var1,
+             id_geracao == input$var2) |>
+      ggplot(aes(x=defesa,y=ataque))+
+      geom_point(shape=22,size=5,color="black",
+                 fill= cores |> filter(tipo==input$var1) |> pull(cor)
+                 ,
+                 alpha=.8) +
+      theme_classic()
+  })
+
+
+}
+
+shinyApp(ui, server)
+
+
+
+```
+
+## 022-inputs-outputs-ssp.R
+
+```{r}
+# Explorando inputs
+#
+# Utilizando a base de criminalidade, faça um Shiny app que, dado um
+# mês/ano escolhido pelo usuário, mostre uma tabela com o número de ocorrências
+# de cada tipo que aconteceram naquele mês.
+# O nível territorial (Estado, região, município ou delegacia) também pode
+# ser um filtro.
+#
+
+library(shiny)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(forcats)
+
+ssp<-"../dados/ssp.rds" |>
+  read_rds()
+
+ui <- fluidPage(
+  "Explorando inputs",
+  sliderInput(inputId = "ano",
+              label = "Selecione o ano",
+              min = 2002,
+              max = 2020,
+              value=2011,
+              step=1,
+              sep = ""),
+  selectInput(inputId = "mes",
+              label = "Selecione o Mês",
+              choices = 1:12 ),
+  selectInput(inputId = "regiao",
+              label = "Selecione a Regiao",
+              choices =  c("ALL", ssp |>
+                pull(regiao_nome) |>
+                as_factor() |>
+                levels())),
+  selectInput(inputId = "municipio",
+              label = "Selecione o Município",
+              choices = c("ALL", ssp |>
+                pull(municipio_nome) |>
+                as_factor() |>
+                levels())),
+  selectInput(inputId = "delegacia",
+              label = "Selecione a Delegacia",
+              choices = c("ALL", ssp |>
+                pull(delegacia_nome) |>
+                as_factor() |>
+                levels())),
+  actionButton("atualizar", label = "Gerar Tabela"),
+  tableOutput("tabela")
+)
+
+server <- function(input, output, session) {
+  ssp <- reactive({read_rds("../dados/ssp.rds")})
+  output$tabela <- renderTable({
+    tabela()
+  })
+  tabela <- eventReactive(input$atualizar,{
+
+    if(input$regiao == "ALL") {
+      ssp_f <- ssp()
+    }else{
+      ssp_f <- ssp() |> filter(regiao_nome == input$regiao)
+    }
+
+    if(input$municipio == "ALL") {
+      ssp_f <- ssp_f
+    }else{
+      ssp_f <- ssp_f |> filter(municipio_nome == input$municipio)
+    }
+
+    if(input$delegacia == "ALL") {
+      ssp_f <- ssp_f
+    }else{
+      ssp_f <- ssp_f |> filter(delegacia_nome == input$delegacia)
+    }
+
+    ssp_f |>
+      filter(ano==input$ano,mes==input$mes) |>
+      pivot_longer(cols = estupro:vit_latrocinio,
+                   names_to = "ocorrencia",
+                   values_to = "contagem") |>
+      group_by(ocorrencia) |>
+      summarise(
+        soma_ocorrencia = as.integer(sum(contagem))
+      ) |>
+    filter(soma_ocorrencia >0)
+
+
+  })
+}
+
+shinyApp(ui, server)
+
+```
+
+
+# Lição de casa extra 
+## extra-010-input-output.R 	
+
+```{r}
+# Gráfico de dispersão da base mtcars
+#
+# Faça um Shiny app para mostrar um gráfico de dispersão (pontos)
+# das variáveis da base mtcars.
+#
+# O seu app deve:
+#
+#   - Ter dois inputs: a variável a ser colocada no eixo e a variável
+#     a ser colocada no eixo y
+#
+#   - Um output: um gráfico de dispersão
+
+library(shiny)
+library(tidyverse)
+
+
+ui <- fluidPage(
+  "Base mtcars",
+  selectInput(
+    inputId = "var_x",
+    label = "Selecione a variável para o eixo x",
+    choices = mtcars |>
+      select(where(is.numeric)) |>
+      names()
+  ),
+  selectInput(
+    inputId = "var_y",
+    label = "Selecione a variável para o eixo y",
+    choices = mtcars |>
+      select(where(is.numeric)) |>
+      names()
+  ),
+  plotOutput("dispersao")
+)
+
+server <- function(input, output, session) {
+  output$dispersao <- renderPlot({
+
+    mtcars |>
+      ggplot(aes_string(x=input$var_x,y=input$var_y)) +
+      geom_point()+
+      theme_bw()
+
+  })
+}
+
+shinyApp(ui, server)
+```
+
+## extra-020-input-output.R 
+
+```{r}
+# Boxplots da base diamonds
+#
+# Faça um shiny app para visualizarmos boxplots da base diamonds.
+#
+# O seu app deve ter dois inputs e um output:
+#
+#   1. o primeiro input deve ser uma caixa de seleção das variáveis
+#     numéricas da base (será o eixo y do gráfico).
+#
+#   2. o segundo input deve ser uma caixa de seleção das variáveis
+#    categóricas da base (será o eixo x do gráfico).
+#
+#   3. o output deve ser um gráfico com os boxplots da variável
+#    escolhida em (1) para cada categoria da variável escolhida em (2).
+#
+# Para acessar a base diamonds, carrrege o pacote ggplot2
+#
+
+library(ggplot2)
+library(tidyverse)
+
+
+ui <- fluidPage(
+  "Base ggplot2::diamonds",
+  selectInput(
+    inputId = "var_x",
+    label = "Selecione a variável numérica",
+    choices = diamonds |>
+      select(where(is.numeric)) |>
+      names()
+  ),
+  selectInput(
+    inputId = "var_y",
+    label = "Selecione a variável categórica",
+    choices = diamonds |>
+      select(!where(is.numeric)) |>
+      names()
+  ),
+  plotOutput("boxplot")
+)
+
+server <- function(input, output, session) {
+  output$boxplot <- renderPlot({
+
+    diamonds |>
+      ggplot(aes_string(y=input$var_x,fill=input$var_y)) +
+      geom_boxplot()+
+      theme_bw()
+
+  })
+}
+
+shinyApp(ui, server)
+```
+
+## extra-021-selecao-multipla.R 
+
+```{r}
+# Selecionando várias opções
+#
+# (a) Reproduza o seguinte Shiny app:
+# https://cursodashboards.shinyapps.io/select-multiple/
+#
+# (b) Troque o selectInput pelo checkboxGroupInput().
+#
+# Para acessar a base utilizada, rode o código abaixo:
+
+# install.packages("nycflights13")
+
+voos<-nycflights13::flights
+
+library(tidyverse)
+library(shiny)
+library(forcats)
+library(lubridate)
+ui <- fluidPage(
+  h3("Reproduzindo app"),
+  selectizeInput(inputId = "lista",
+                 label = "Selecione uma ou mais empresas",
+                 choices = voos |> arrange(carrier) |>
+                   pull(carrier) |>
+                   as_factor() |> levels(),
+                 selected = NULL,
+                 multiple = TRUE,
+                 options = NULL),
+  plotOutput("grafico")
+)
+
+server <- function(input, output, session) {
+
+  voos<-nycflights13::flights
+
+  output$grafico <- renderPlot({
+    fun_graf()
+  })
+
+fun_graf <- eventReactive(input$lista,{
+  voos |>
+    mutate(
+      data =make_date(year, month, day)
+    ) |>
+    filter( carrier %in% input$lista) |>
+    group_by(data,carrier) |>
+    summarise( n_voos = n()) |>
+    ggplot(aes(x=data,y=n_voos,color=as_factor(carrier)))+
+    geom_line()+
+    labs(x="Data",y="Número de voos",color="carrier",
+         title = "Número de voos por empresa ao longode 2013",
+         font=2)+
+    theme_minimal()
+  })
+}
+
+shinyApp(ui, server)
+```
+
+## extra-022-date-input.R 	
+
+```{r}
+# Date input
+#
+# Reproduza o seguinte Shiny app:
+# https://cursodashboards.shinyapps.io/select-date/
+#
+# Para acessar a base utilizada, rode o código abaixo:
+
+library(tidyverse)
+library(shiny)
+library(forcats)
+library(lubridate)
+
+voos<-nycflights13::flights
+
+inicio_fim<-voos |> mutate(
+  data=make_date(year,month,day)
+) |> pull(data) |> range()
+
+ui <- fluidPage(
+  h3("Reproduzindo app"),
+  dateInput(inputId = "data",
+            label = "Escolha o dia",
+            value = inicio_fim[1],
+            min = inicio_fim[1],
+            max = inicio_fim[2],
+            format = "dd-mm-yyyy",),
+  tableOutput("tabela"),
+  plotOutput("grafico")
+)
+
+server <- function(input, output, session) {
+
+  voos<-nycflights13::flights
+
+  output$tabela <- renderTable({
+    voos |>
+      mutate(data=make_date(year,month,day)) |>
+      filter(data==input$data) |>
+      mutate(dep_delay = ifelse(dep_delay<0,0,dep_delay),
+             arr_delay = ifelse(arr_delay<0,0,arr_delay))  |>
+      summarise(
+        `Número de voos` = n(),
+        `Atraso médio de partida (min)`=mean(dep_delay,na.rm=TRUE),
+        `Atraso médio de chegada (min)`=mean(arr_delay,na.rm=TRUE)
+      )
+  })
+
+  output$grafico <- renderPlot({
+    voos |>
+      mutate(data=make_date(year,month,day)) |>
+      filter(data==input$data) |>
+      group_by(carrier) |>
+      summarise(
+        n_voos = n()
+      ) |>
+      ggplot(aes(x=carrier,y=n_voos,fill=as_factor(carrier)))+
+      geom_col() +
+      theme_minimal()+
+      theme(legend.position = "none")+
+      labs(x="Empresa",y="Número de voos",
+           title="Número de voos por empresa")
+  })
+}
+shinyApp(ui, server)
+```
+

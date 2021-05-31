@@ -43,7 +43,6 @@ server <- function(input, output, session) {
         `Atraso médio de partida (min)`=mean(dep_delay,na.rm=TRUE),
         `Atraso médio de chegada (min)`=mean(arr_delay,na.rm=TRUE)
       )
-
   })
 
   output$grafico <- renderPlot({
