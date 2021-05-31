@@ -1,0 +1,14 @@
+name: exercicios_resolvidos
+title: exercicios_resolvidos
+username:
+account: arpanosso
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4208991
+bundleId: 4660592
+url: https://arpanosso.shinyapps.io/exercicios_resolvidos/
+when: 1622466934.05163
+lastSyncTime: 1622466934.05163
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 010-meu-primeiro-app.R|011-mey-segundo-app.R|020-inputs-outputs-credito.R|021-inputs-outputs-pokemon.R|extra-010-input-output.R|extra-020-input-output.R|extra-021-selecao-multipla.R|extra-022-date-input.R

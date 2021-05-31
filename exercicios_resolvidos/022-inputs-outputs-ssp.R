@@ -5,7 +5,7 @@
 # de cada tipo que aconteceram naquele mês.
 # O nível territorial (Estado, região, município ou delegacia) também pode
 # ser um filtro.
-#
+
 
 library(shiny)
 library(dplyr)
