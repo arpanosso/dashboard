@@ -4,11 +4,11 @@ username:
 account: arpanosso
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 4209696
-bundleId: 4661309
+appId: 4209852
+bundleId: 4661657
 url: https://arpanosso.shinyapps.io/exercicios_resolvidos/
-when: 1622477208.15859
-lastSyncTime: 1622477208.15859
+when: 1622484346.0717
+lastSyncTime: 1622484346.0717
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: 010-meu-primeiro-app.R|011-mey-segundo-app.R|020-inputs-outputs-credito.R|021-inputs-outputs-pokemon.R|extra-010-input-output.R|extra-020-input-output.R|extra-021-selecao-multipla.R|extra-022-date-input.R

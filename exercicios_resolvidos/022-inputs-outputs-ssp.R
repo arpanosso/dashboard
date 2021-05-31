@@ -15,7 +15,7 @@ library(forcats)
 library(purrr)
 
 ssp1<-"ssp.rds" |>
-  read_rds()
+  readRDS()
 
 ssp_nest <- ssp1 |>
  pivot_longer(cols = estupro:vit_latrocinio,
