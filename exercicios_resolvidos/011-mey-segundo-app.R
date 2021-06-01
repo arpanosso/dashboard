@@ -6,19 +6,18 @@
 # para visualizarmos alguma informação interessante da base.
 #
 # - Suba o app para o shinyapps.io.
-
-
-
 library(shiny)
 library(dplyr)
-imdb <- readr::read_rds("dados/imdb.rds" )
+
+readr::read_rds("dados/imdb.rds")
 
 ui <- fluidPage(
   "Base - IMDB",
   selectInput(
     inputId = "Coluna",
     label = "Selecione a variável",
-    choices = names(imdb)
+    choices = readr::read_rds("dados/imdb.rds") |>
+      names()
   ),
   plotOutput("histograma")
 )
