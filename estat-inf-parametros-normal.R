@@ -74,7 +74,53 @@ ui <- dashboardPage(
       ),
       tabItem(
         tabName = "binomial",
-        h1("Estudo de parâmetros Binomial")
+        h1("Estudo de parâmetros Binomial"),
+        fluidRow( # sempre usar com Colum, para não dar toque
+          column(h2("Estudo dos Parâmetros da Normal"),width = 12),
+          column(
+            h3("Distribuição 01"),
+            width = 4,quadrado(),
+            sliderInput("m1","Média",
+                        min=0,
+                        max=100,
+                        value = 50,
+                        step = 1),
+            numericInput("sd1","Desvio-padrão",min=5,
+                         max=25,
+                         value = 7,
+                         step = 1)
+          ),
+          column(
+            h3("Distribuição 02"),
+            width = 4,
+            sliderInput("m2","Média",
+                        min=0,
+                        max=100,
+                        value = 50,
+                        step = 1),
+            numericInput("sd2","Desvio-padrão",min=5,
+                         max=25,
+                         value = 7,
+                         step = 1)
+          ),
+          column(
+            h3("Distribuição 03"),
+            width = 4,
+            sliderInput("m3","Média",
+                        min=0,
+                        max=100,
+                        value = 50,
+                        step = 1),
+            numericInput("sd3","Desvio-padrão",min=5,
+                         max=25,
+                         value = 7,
+                         step = 1)
+          ),
+          column(
+            width = 12,
+            plotOutput("grafico_hist")
+          )
+        )
       ),
       tabItem(
         tabName = "poisson",
