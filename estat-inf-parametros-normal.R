@@ -3,12 +3,6 @@ library(shiny)
 library(shinydashboard)
 
 
-texto <- function(text = ""){
-  div(
-    style="color: white; font-size: 24px;",
-    text
-  )
-}
 
 ui <- dashboardPage(
   header=dashboardHeader(
@@ -29,7 +23,6 @@ ui <- dashboardPage(
           column(h2("Estudo dos Parâmetros da Normal"),width = 12),
           column(
             h3("Distribuição 01"),
-            width = 4,quadrado(),
             sliderInput("m1","Média",
                         min=0,
                         max=100,
@@ -79,7 +72,6 @@ ui <- dashboardPage(
           column(h2("Estudo dos Parâmetros da Normal"),width = 12),
           column(
             h3("Distribuição 01"),
-            width = 4,quadrado(),
             sliderInput("m1","Média",
                         min=0,
                         max=100,
