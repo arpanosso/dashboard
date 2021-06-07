@@ -1,6 +1,7 @@
 quadrado <- function(text = ""){
   div(
-    style="background: purple; height: 100px; text-align: center; color: white;  font-size: 24px;",
+    style="background: purple; height: 100px; text-align: center; color: white;
+    font-size: 24px;",
     text
   )
 }
@@ -8,7 +9,8 @@ quadrado <- function(text = ""){
 
 quadrado_altao <- function(text = ""){
   div(
-    style="background: purple; height: 200px; text-align: center; color: white; font-size: 24px;" ,
+    style="background: purple; height: 200px; text-align: center; color: white;
+    font-size: 24px;" ,
     text
   )
 }

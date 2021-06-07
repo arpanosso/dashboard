@@ -1,4 +1,5 @@
 library(shiny)
+library(tidyverse)
 
 ui <- navbarPage(
   title = "Shiny com navbarPage",

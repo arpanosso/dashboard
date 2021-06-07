@@ -7,7 +7,6 @@ ui <- fluidPage( # criando o html
   "Um hitograma", # passei função
   plotOutput("histograma") # temos que identificar o out e os input
                      # o gráfico deve ser construído dentro do servidor.
-
 )
 
 server <- function(input,output,session){
