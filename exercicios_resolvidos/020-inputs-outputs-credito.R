@@ -9,8 +9,7 @@ library(ggplot2)
 library(readr)
 library(forcats)
 
-cradito<-"../dados/credito.rds" |>
-  read_rds()
+credito<-read_rds("../dados/credito.rds")
 
 ui <- fluidPage(
   "Explorando inputs",

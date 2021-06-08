@@ -515,6 +515,381 @@ server &lt;- function(input, output, session) {
 
 shinyApp(ui, server)</code></pre>
 </div>
+<div id="sidebarlayout.r" class="section level2">
+<h2>030-sidebarLayout.R</h2>
+<pre class="r"><code># Reconstrua os apps dos exercícios 2.0, 2.1 e 2.2, agora utilizando
+# o sidebarLayout.
+
+
+# 2.0 ---------------------------------------------------------------------
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(forcats)
+
+credito&lt;-read_rds(&quot;../dados/credito.rds&quot;)
+
+ui &lt;- fluidPage(
+  titlePanel(&quot;Explorando inputs&quot;),
+  sidebarLayout(
+    sidebarPanel=sidebarPanel( # primeira
+      width = 3,
+      selectInput(inputId = &quot;var1&quot;,
+                  label = &quot;Selecione o Estado Civil&quot;,
+                  choices =  credito |&gt;
+                    pull(estado_civil) |&gt;
+                    as_factor() |&gt;
+                    levels()),
+      selectInput(inputId = &quot;var2&quot;,
+                  label = &quot;Selecione o Tipo de Moradia&quot;,
+                  choices =  credito |&gt;
+                    pull(moradia) |&gt;
+                    as_factor() |&gt;
+                    levels()),
+      selectInput(inputId = &quot;var3&quot;,
+                  label = &quot;Selecione o Trabalho&quot;,
+                  choices =  credito |&gt;
+                    pull(trabalho) |&gt;
+                    as_factor() |&gt;
+                    levels()),
+      actionButton(&quot;atualizar&quot;, label = &quot;Gerar gráfico&quot;),
+    ),
+    mainPanel=mainPanel( # segunda, geralmente a saída
+      width = 9,
+      plotOutput(&quot;grafico&quot;)
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  credito &lt;- read_rds(&quot;../dados/credito.rds&quot;)
+  output$grafico &lt;- renderPlot({
+    grafico()
+  })
+
+
+  grafico &lt;- eventReactive(input$atualizar,{
+    credito |&gt;
+      filter(estado_civil == input$var1,
+             moradia == input$var2,
+             trabalho == input$var3) |&gt; # browser() |&gt;
+      group_by(status) |&gt;
+      summarise(
+        cont = n()
+      ) |&gt;
+      ggplot(aes(x=status,y=cont))+
+      geom_col(color=&quot;black&quot;,fill=&quot;aquamarine4&quot;) +
+      theme_classic()
+  })
+}
+
+shinyApp(ui, server)
+
+
+# 2.1 ---------------------------------------------------------------------
+
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(forcats)
+
+pokemon&lt;-&quot;../dados/pkmn.rds&quot; |&gt;
+  read_rds()
+
+cor&lt;-c(&quot;green&quot;,&quot;red&quot;,&quot;blue&quot;,
+       &quot;lightgreen&quot;,&quot;pink&quot;,&quot;purple&quot;,
+       &quot;yellow&quot;,&quot;coral4&quot;,&quot;darkorchid4&quot;,
+       &quot;darkorange&quot;,&quot;lavender&quot;,&quot;grey61&quot;,
+       &quot;mediumorchid4&quot;,&quot;lightblue&quot;,&quot;lightsalmon4&quot;,
+       &quot;violetred4&quot;,&quot;gray&quot;,&quot;blue&quot;)
+
+tipo&lt;-pokemon |&gt;
+  pull(tipo_1) |&gt;
+  as_factor() |&gt;
+  levels()
+
+cores &lt;- tibble(tipo,cor)
+
+ui &lt;- fluidPage(
+ titlePanel(&quot;Explorando inputs POKEMON&quot;),
+ sidebarLayout(
+   sidebarPanel=sidebarPanel( # primeira
+            width = 3,
+    selectInput(inputId = &quot;var1&quot;,
+                label = &quot;Selecione um Tipo&quot;,
+                choices =  pokemon |&gt;
+                  pull(tipo_1) |&gt;
+                  as_factor() |&gt;
+                  levels()),
+    selectInput(inputId = &quot;var2&quot;,
+                label = &quot;Selecione uma Geração&quot;,
+                choices =  pokemon |&gt;
+                  pull(id_geracao) |&gt;
+                  as_factor() |&gt;
+                  levels())
+    ),
+   mainPanel = mainPanel(
+    plotOutput(&quot;grafico&quot;)
+   )
+ )
+)
+
+server &lt;- function(input, output, session) {
+  credito &lt;- read_rds(&quot;../dados/credito.rds&quot;)
+  output$grafico &lt;- renderPlot({
+    pokemon |&gt;
+      filter(tipo_1 == input$var1,
+             id_geracao == input$var2) |&gt;
+      ggplot(aes(x=defesa,y=ataque))+
+      geom_point(shape=22,size=5,color=&quot;black&quot;,
+                 fill= cores |&gt; filter(tipo==input$var1) |&gt; pull(cor)
+                 ,
+                 alpha=.8) +
+      theme_classic()
+  })
+
+
+}
+
+shinyApp(ui, server)
+
+
+# 2.2 ---------------------------------------------------------------------
+
+library(shiny)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(forcats)
+library(purrr)
+
+ssp1&lt;-&quot;ssp.rds&quot; |&gt;
+  readRDS()
+
+ssp_nest &lt;- ssp1 |&gt;
+  pivot_longer(cols = estupro:vit_latrocinio,
+               names_to = &quot;ocorrencia&quot;,
+               values_to = &quot;contagem&quot;) |&gt;
+  group_by(regiao_nome) |&gt;
+  nest() |&gt; drop_na()
+
+make_list &lt;- function(df,col){
+  df |&gt; pull(col) |&gt; unique()
+}
+
+ssp_nest &lt;- ssp_nest |&gt;
+  mutate(
+    lista_1 = map(data,make_list,&quot;municipio_nome&quot;),
+    lista_2 = map(data,make_list,&quot;delegacia_nome&quot;)
+  )
+
+names(ssp_nest$lista_1) &lt;- ssp_nest$regiao_nome
+names(ssp_nest$lista_2) &lt;- ssp_nest$regiao_nome
+
+ui &lt;- fluidPage(
+  titlePanel(&quot;Explorando inputs&quot;),
+  sidebarLayout(
+    sidebarPanel = sidebarPanel(
+      width = 4,
+      sliderInput(inputId = &quot;ano&quot;,
+                  label = &quot;Selecione o ano&quot;,
+                  min = 2002,
+                  max = 2020,
+                  value=2011,
+                  step=1,
+                  sep = &quot;&quot;),
+      selectInput(inputId = &quot;mes&quot;,
+                  label = &quot;Selecione o Mês&quot;,
+                  choices = 1:12),
+      selectInput(inputId = &quot;regiao&quot;,
+                  label = &quot;Selecione a Regiao&quot;,
+                  choices =  c(&quot;ALL&quot;, ssp1 |&gt;
+                                 pull(regiao_nome) |&gt;
+                                 as_factor() |&gt;
+                                 levels())),
+      selectInput(inputId = &quot;municipio&quot;,
+                  label = &quot;Selecione o Município&quot;,
+                  choices = c(&quot;ALL&quot;, ssp_nest$lista_1)),
+      selectInput(inputId = &quot;delegacia&quot;,
+                  label = &quot;Selecione a Delegacia&quot;,
+                  choices = c(&quot;ALL&quot;, ssp_nest$lista_2)),
+    ),
+    mainPanel = mainPanel(
+      width = 8,
+      actionButton(&quot;atualizar&quot;, label = &quot;Gerar Tabela&quot;),
+      tableOutput(&quot;tabela&quot;)
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  ssp &lt;- reactive({readRDS(&quot;ssp.rds&quot;)})
+  output$tabela &lt;- renderTable({
+    tabela()
+  })
+  tabela &lt;- eventReactive(input$atualizar,{
+
+    if(input$regiao == &quot;ALL&quot;) {
+      ssp_f &lt;- ssp()
+    }else{
+      ssp_f &lt;- ssp() |&gt; filter(regiao_nome == input$regiao)
+    }
+
+    if(input$municipio == &quot;ALL&quot;) {
+      ssp_f &lt;- ssp_f
+    }else{
+      ssp_f &lt;- ssp_f |&gt; filter(municipio_nome == input$municipio)
+    }
+
+    if(input$delegacia == &quot;ALL&quot;) {
+      ssp_f &lt;- ssp_f
+    }else{
+      ssp_f &lt;- ssp_f |&gt; filter(delegacia_nome == input$delegacia)
+    }
+
+    ssp_f |&gt;
+      filter(ano==input$ano,mes==input$mes) |&gt;
+      pivot_longer(cols = estupro:vit_latrocinio,
+                   names_to = &quot;ocorrencia&quot;,
+                   values_to = &quot;contagem&quot;) |&gt;
+      group_by(ocorrencia) |&gt;
+      summarise(
+        soma_ocorrencia = as.integer(sum(contagem))
+      ) |&gt;
+      filter(soma_ocorrencia &gt;0)
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+<div id="navbarpage.r" class="section level2">
+<h2>031-navbarPage.R</h2>
+<pre class="r"><code># navbarPage
+#
+# Utilizando a base cetesb, faça um shiny app que tenha duas abas:
+#
+# - a primeira com uma série temporal da média diária do ozônio (O3),
+# permitindo a escolha do intervalo de dias em que o gráfico é gerado
+#
+# - a segunda com a série temporal da média diária do último mês da base
+# permitindo a escolha do poluente.
+
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(readr)
+library(forcats)
+
+cetesb &lt;- read_rds(&quot;../dados/cetesb.rds&quot;)
+limites &lt;- cetesb |&gt; pull(data) |&gt; range()
+poluentes &lt;- cetesb |&gt; pull(poluente) |&gt; as_factor() |&gt; levels()
+
+ui &lt;- dashboardPage(
+  header=dashboardHeader(
+    title = &quot;Exercício 031&quot;
+  ),
+  sidebar=dashboardSidebar(
+    sidebarMenu(
+      menuItem(&quot;Série Temporal - Ozônio&quot;, tabName = &quot;ozonio&quot;),
+      menuItem(&quot;Série Temporal - Poluentes&quot;,tabName = &quot;poluentes&quot;)
+    )
+  ),
+  body=dashboardBody(
+    tabItems(
+      tabItem(
+        tabName = &quot;ozonio&quot;,
+        fluidRow( # sempre usar com Colum, para não dar toque
+          column(width = 12,h1(&quot;Média diária (O3)&quot;)),
+          column(
+            width = 5,
+            dateInput(inputId = &quot;inicio&quot;,
+                      label = &quot;Selecione data Inicial&quot;,
+                      min = limites[1],
+                      max = limites[2],
+                      value = limites[1],
+                      format = &quot;dd-mm-yyyy&quot;)
+            ),
+          column(
+            width = 5,
+            dateInput(inputId = &quot;fim&quot;,
+                      label = &quot;Selecione data Final&quot;,
+                      min = limites[1],
+                      max = limites[2],
+                      value = limites[2],
+                      format = &quot;dd-mm-yyyy&quot;)
+          ),
+          column(
+            width = 8,
+            actionButton(&quot;atualizar&quot;, label = &quot;Gerar Gráfico&quot;)
+          ),
+          column(
+            width = 10,
+            plotOutput(&quot;grafico1&quot;)
+          )
+        )
+      ),
+      tabItem(
+        tabName = &quot;poluentes&quot;,
+        fluidRow( # sempre usar com Colum, para não dar toque
+          column(width = 12,h1(&quot;Média diária - Mês dezembro de 2020&quot;)),
+          column(
+            width = 8,
+            selectInput(inputId = &quot;poluente&quot;,
+                      label = &quot;Selecione o Poluente&quot;,
+                      choices = poluentes)
+          ),
+          column(
+            width = 8,
+            actionButton(&quot;atualizar2&quot;, label = &quot;Gerar Gráfico&quot;)
+          ),
+          column(
+            width = 10,
+            plotOutput(&quot;grafico2&quot;)
+          )
+        )
+      )
+    )
+  )
+)
+
+
+server &lt;- function(input, output, session) {
+  cetesb &lt;- reactive({read_rds(&quot;../dados/cetesb.rds&quot;)})
+  output$grafico1&lt;-renderPlot({grafico1()})
+  grafico1 &lt;- eventReactive(input$atualizar,{
+    cetesb() |&gt;
+      browser() |&gt;
+      filter(data &gt;= input$inicio &amp; data &lt;= input$fim, poluente==&quot;O3&quot;) |&gt;
+      group_by(data) |&gt;
+      summarise(
+        media_ozonio = mean(concentracao,na.rm=TRUE)
+      ) |&gt;
+      ggplot(aes(x=data,y=media_ozonio)) +
+      geom_line()+
+      theme_bw()
+  })
+
+
+  output$grafico2&lt;-renderPlot({grafico2()})
+  grafico2 &lt;- eventReactive(input$atualizar2,{
+    cetesb()|&gt;
+      filter(poluente==input$poluente, data &gt; &quot;2020-01-01&quot; &amp; data &lt;= &quot;2020-12-31&quot;) |&gt;
+      group_by(data) |&gt;
+      summarise(
+        media_poluente = mean(concentracao,na.rm=TRUE)
+      ) |&gt;
+      ggplot(aes(x=data,y=media_poluente)) +
+      geom_line()+
+      theme_bw()
+  })
+
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
 </div>
 <div id="lição-de-casa-extra" class="section level1">
 <h1>Lição de casa extra</h1>
