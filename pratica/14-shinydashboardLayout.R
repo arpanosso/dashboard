@@ -14,8 +14,8 @@ ui <- dashboardPage(
   ),
   body=dashboardBody(
     tabItems(
-      tabItem(),
-      tabItem()
+      tabItem(tabName = "item1"),
+      tabItem(tabName = "item2")
     )
   ),
   title = "Meu App"

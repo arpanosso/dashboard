@@ -6,21 +6,25 @@ library(shinydashboard)
 ##shiny::includeMarkdown("caminho do arquivo") # COPIA EM HTML DENTRO DO MARCKDONW
 
 ui <- dashboardPage(
-  header=dashboardHeader(
+  header=dashboardHeader( # ARG1
     title = "Meu App!!!"
   ),
-  sidebar=dashboardSidebar(
+  sidebar=dashboardSidebar( # ARG2
     sidebarMenu(
       menuItem("Infromações Gerais",tabName = "info",icon = icon("twitter-square")),
       menuItem("Orçamentos",tabName = "orcamentos",icon = icon("dollar-sign")),
-      menuItem("Receitas",
-               menuItem("visão 01",tabName = "visao_1"),
-               menuItem("visão 02",tabName = "visao_2",
-                        menuSubItem("Visao 02",tabName = "vis22"),
-                        menuSubItem("Visao 02",tabName = "vis22")))
+      menuItem(
+        "Receitas",
+         menuItem("Visão geral",
+                  menuSubItem("visão geral 1", tabName = "visao_1"),
+                  menuSubItem("visão geral 2",tabName = "visao_2")
+                  ),
+         menuSubItem("Por diretor",tabName = "por_diretor_receitas"),
+         menuSubItem("Por Periodo",tabName = "por_periodo_receitas")
+      )
     )
   ),
-  body=dashboardBody(
+  body=dashboardBody( # ARG3
     tabItems(
       tabItem(
         tabName = "info",
@@ -28,7 +32,7 @@ ui <- dashboardPage(
           column(
             width = 12,
             h1("Informação gerais dos filmes"),
-            selectInput("variavel",label = "selecione variável",choices = names(mtcars[,-1]))
+            selectInput("variavel",label = "selecione variável",choices = names(mtcars))
           )
         )
       ),
@@ -37,16 +41,20 @@ ui <- dashboardPage(
         h1("Analisando os orçamentos")
       ),
       tabItem(
-        tabName = "visao_1",
-        h1("visão 01")
+        tabName = "visao_geral_receitas",
+        h1("Receita - Visão Geral")
       ),
       tabItem(
-        tabName = "visao_2",
-        h1("visão 02")
+        tabName = "por_diretor_receitas",
+        h1("Receita - Por diretor")
+      ),
+      tabItem(
+        tabName = "por_periodo_receitas",
+        h1("Receita - Por Período")
       )
     )
   ),
-  title = "Meu App"
+  title = "Meu App" # ARG4
 )
 
 
