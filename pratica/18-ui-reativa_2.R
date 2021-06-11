@@ -44,14 +44,14 @@ ui <- dashboardPage(
         fluidRow(
           box(
             width = 12,
-            selectInput(
-              inputId = "orcamento_genero",
-              label = "Escolha o gênero",
-              choices = "Carregando..",
-              width = "25%" #, # coupa um quarto do que tem em disposição
-              #selected = "Comedy"
-            )
-
+            uiOutput("ui_generos")
+            # selectInput(
+            #   inputId = "orcamento_genero",
+            #   label = "Escolha o gênero",
+            #   choices = "Carregando..",
+            #   width = "25%" #, # coupa um quarto do que tem em disposição
+            #   #selected = "Comedy"
+            # )
           )
         ),
         fluidRow(
@@ -60,7 +60,7 @@ ui <- dashboardPage(
             title = "Série do Orçamento",
             solidHeader = TRUE, #cabeçalho colorido
             status = "primary",  # para mudar a cor igual do anterior
-            plotOutput("serie_orcamento")
+            plotOutput("serie_orcamento", height = "200px") # controla a altura do box
           )
         )
       ),
@@ -164,7 +164,29 @@ server <- function(input, output, session) {
   # página 2
 
 
-  # output$ui_generos <- renderUI({
+  output$ui_generos <- renderUI({
+    generos <- imdb |>
+      pull(generos) |>
+      paste(collapse = "|") |>
+      stringr::str_split("\\|") |>
+      purrr::flatten_chr() |>
+      unique()
+
+    selectInput(
+      inputId = "orcamento_genero",
+      label = "Escolha o gênero",
+      choices = generos,
+      width = "25%" #, # coupa um quarto do que tem em disposição
+      #selected = "Comedy"
+    )
+  })
+
+  # #observe não cria a função igual a reactive
+  # # ele faz um efeito colateral
+  # # observeEvent(input$botao,{})
+  # observe({ # so roda na inicializaçlão e unuca mais, pois naõ tem valor
+  #   # Sys.sleep(3) # para a sessão por 3 segundos
+  #
   #   generos <- imdb |>
   #     pull(generos) |>
   #     paste(collapse = "|") |>
@@ -172,36 +194,18 @@ server <- function(input, output, session) {
   #     purrr::flatten_chr() |>
   #     unique()
   #
-  #   selectInput(
-  #     inputId = "orcamento_genero",
-  #     label = "Escolha o gênero",
-  #     choices = generos,
-  #     width = "25%" #, # coupa um quarto do que tem em disposição
-  #     #selected = "Comedy"
+  #   updateSelectInput( # SEMPRE NO observeou ObserveEvent
+  #     session, # sempre como primeiro argumento
+  #     "orcamento_genero",
+  #     choices = generos
   #   )
   # })
 
-  #observe não cria a função igual a reactive
-  # ele faz um efeito colateral
-  # observeEvent(input$botao,{})
-  observe({ # so roda na inicializaçlão e unuca mais, pois naõ tem valor
-    # Sys.sleep(3) # para a sessão por 3 segundos
-
-      generos <- imdb |>
-        pull(generos) |>
-        paste(collapse = "|") |>
-        stringr::str_split("\\|") |>
-        purrr::flatten_chr() |>
-        unique()
-
-    updateSelectInput( # SEMPRE NO observeou ObserveEvent
-      session, # sempre como primeiro argumento
-      "orcamento_genero",
-      choices = generos
-    )
-  })
-
   output$serie_orcamento <- renderPlot({
+    Sys.sleep(2)
+    # req(input$orcamento_genero) # validação mais usada
+    validate(need(isTruthy(input$orcamento_genero),
+                  " o app ainda esta carregando..."))
     imdb |>
       dplyr::filter(stringr::str_detect(generos,input$orcamento_genero)) |>
       dplyr::group_by(ano) |>
@@ -212,7 +216,7 @@ server <- function(input, output, session) {
   # estrutra de reatividade é escrita em JS, e as
   # char de reatividade são reproduzida no servidor
 
-    # pagina 3
+  # pagina 3
 
   observe({
 
@@ -249,6 +253,6 @@ server <- function(input, output, session) {
     )
   })
 
-  }
+}
 
 shinyApp(ui, server)
