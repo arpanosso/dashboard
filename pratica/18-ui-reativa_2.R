@@ -56,7 +56,7 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(
-            width = 4,
+            width = 12,
             title = "Série do Orçamento",
             solidHeader = TRUE, #cabeçalho colorido
             status = "primary",  # para mudar a cor igual do anterior
