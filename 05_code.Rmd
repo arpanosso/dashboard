@@ -1,5 +1,4 @@
-
-```{r,eval=FALSE}
+```{r, eval =FALSE}
 # UI reativa
 #
 # Construa um shiny app que possua um filtro de
@@ -30,16 +29,16 @@ library(ggplot2)
 library(tidyverse)
 library(lubridate)
 
-cetesb <- readr::read_rds("../dados/cetesb.rds")
+cetesb <- readr::read_rds("cetesb.rds")
 
 ui <- dashboardPage(
   header = dashboardHeader(title = "Exercício 05"),
   sidebar = dashboardSidebar(
     sidebarMenu(
-      menuItem("CETESB", tabName = "cetesb"),
-      menuItem("POKEMON", tabName = "pokemon"),
-      menuItem("SSP", tabName = "ssp"),
-      menuItem("Código em R", tabName = "code")
+      menuItem("CETESB", tabName = "cetesb",icon = icon("smog") ),
+      menuItem("POKEMON", tabName = "pokemon",icon = icon("pastafarianism")),
+      menuItem("SSP", tabName = "ssp",icon = icon("shield-alt")),
+      menuItem("Código em R", tabName = "code",icon = icon("laptop-code"))
     )
   ),
   body = dashboardBody(
@@ -148,12 +147,12 @@ ui <- dashboardPage(
             )
           )
         ),
-        fluidRow(
-          column(
-            width = 4,
-            actionButton("atualizar", "Gerar Série")
-          )
-        ),
+        # fluidRow(
+        #   column(
+        #     width = 4,
+        #     actionButton("atualizar", "Gerar Série")
+        #   )
+        # ),
         br(),
         fluidRow(
           box(
@@ -175,7 +174,7 @@ ui <- dashboardPage(
         ),
         hr(style = "border-top: 1px solid black;"), # tag horizontal row style para mudar o css
         br(),
-        includeHTML("../05_code.html")
+        includeHTML("05_code.html")
       )
     )
   ),
@@ -183,7 +182,9 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
-  cetesb <- readr::read_rds("../dados/cetesb.rds")
+  cetesb <- readr::read_rds("cetesb.rds")
+  ssp <- readr::read_rds("ssp.rds")
+  pokemon <- readr::read_rds("pkmn.rds")
   #pagina 01
   observe({
     poluentes <- cetesb |>
@@ -211,7 +212,7 @@ server <- function(input, output, session) {
   })
 
   #página 2
-  pokemon <- readr::read_rds("../dados/pkmn.rds")
+
   output$ui_tipo_1 <- renderUI({
     selectInput(
       "tipo_1",
@@ -243,61 +244,64 @@ server <- function(input, output, session) {
   })
   #página 3
   output$ui_regiao <- renderUI({
-    ssp <- readr::read_rds("../dados/ssp.rds")
-      selectInput(
-        "regiao",
-        "Selecione a região",
-        choices = ssp |> pull(regiao_nome) |> unique() |> sort(),
-        selected = "Araçatuba"
-      )
-    })
 
-    output$ui_municipio <- renderUI({
-      req(input$regiao)
-      selectInput(
-        "municipio",
-        "Selecione o município",
-        choices = ssp |> filter(regiao_nome == input$regiao) |>
-          pull(municipio_nome) |> unique() |> sort(),
-        selected = "Carregando..."
-      )
-    })
+    selectInput(
+      "regiao",
+      "Selecione a região",
+      choices = ssp |> pull(regiao_nome) |> unique() |> sort(),
+      selected = "Araçatuba"
+    )
+  })
 
-    output$ui_delegacia <- renderUI({
-      req(input$regiao)
-      req(input$municipio)
-      selectInput(
-        "delegacia",
-        "Selecione a delegacia",
-        choices = ssp |> filter(regiao_nome == input$regiao,
-                                municipio_nome == input$municipio) |>
-          pull(delegacia_nome) |> unique() |> sort(),
-        selected = "Carregando..."
-      )
-    })
+  output$ui_municipio <- renderUI({
+    req(input$regiao)
+    selectInput(
+      "municipio",
+      "Selecione o município",
+      choices = ssp |> filter(regiao_nome == input$regiao) |>
+        pull(municipio_nome) |> unique() |> sort(),
+      selected = "Carregando..."
+    )
+  })
 
-    output$serie_furtos <- renderPlot({
-      graf_furtos()
-    })
+  output$ui_delegacia <- renderUI({
+    req(input$regiao)
+    req(input$municipio)
+    selectInput(
+      "delegacia",
+      "Selecione a delegacia",
+      choices = ssp |> filter(regiao_nome == input$regiao,
+                              municipio_nome == input$municipio) |>
+        pull(delegacia_nome) |> unique() |> sort(),
+      selected = "Carregando..."
+    )
+  })
+
+  output$serie_furtos <- renderPlot({
+    Sys.sleep(1.5)
+    validate(need(isTruthy(input$regiao),"carregando região..."))
+    validate(need(isTruthy(input$municipio),"carregando município..."))
+    validate(need(isTruthy(input$delegacia),"carregando delegacia..."))
+
+    ssp |> filter(regiao_nome == input$regiao,
+                  municipio_nome == input$municipio,
+                  delegacia_nome == input$delegacia) |>
+      mutate(
+        data = make_date(year = ano, month = mes)
+      ) |>
+      group_by(data) |>
+      summarise(
+        furtos = furto_outros + furto_veiculos
+      ) |>
+      ggplot(aes(x=data,y=furtos))+
+      geom_line()
+  })
 
 
-    graf_furtos <- eventReactive(input$atualizar,{
-      ssp |> filter(regiao_nome == input$regiao,
-                    municipio_nome == input$municipio,
-                    delegacia_nome == input$delegacia) |>
-        mutate(
-          data = make_date(year = ano, month = mes)
-        ) |>
-        group_by(data) |>
-        summarise(
-          furtos = furto_outros + furto_veiculos
-        ) |>
-        ggplot(aes(x=data,y=furtos))+
-        geom_line()
-    })
 
 }
 
 shinyApp(ui, server)
+
 ```
 

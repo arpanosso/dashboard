@@ -92,7 +92,6 @@ server <- function(input, output, session) {
   output$grafico1<-renderPlot({grafico1()})
   grafico1 <- eventReactive(input$atualizar,{
     cetesb() |>
-      browser() |>
       filter(data >= input$inicio & data <= input$fim, poluente=="O3") |>
       group_by(data) |>
       summarise(

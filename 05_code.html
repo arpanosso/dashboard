@@ -197,16 +197,16 @@ library(ggplot2)
 library(tidyverse)
 library(lubridate)
 
-cetesb &lt;- readr::read_rds(&quot;../dados/cetesb.rds&quot;)
+cetesb &lt;- readr::read_rds(&quot;cetesb.rds&quot;)
 
 ui &lt;- dashboardPage(
   header = dashboardHeader(title = &quot;Exercício 05&quot;),
   sidebar = dashboardSidebar(
     sidebarMenu(
-      menuItem(&quot;CETESB&quot;, tabName = &quot;cetesb&quot;),
-      menuItem(&quot;POKEMON&quot;, tabName = &quot;pokemon&quot;),
-      menuItem(&quot;SSP&quot;, tabName = &quot;ssp&quot;),
-      menuItem(&quot;Código em R&quot;, tabName = &quot;code&quot;)
+      menuItem(&quot;CETESB&quot;, tabName = &quot;cetesb&quot;,icon = icon(&quot;smog&quot;) ),
+      menuItem(&quot;POKEMON&quot;, tabName = &quot;pokemon&quot;,icon = icon(&quot;pastafarianism&quot;)),
+      menuItem(&quot;SSP&quot;, tabName = &quot;ssp&quot;,icon = icon(&quot;shield-alt&quot;)),
+      menuItem(&quot;Código em R&quot;, tabName = &quot;code&quot;,icon = icon(&quot;laptop-code&quot;))
     )
   ),
   body = dashboardBody(
@@ -315,12 +315,12 @@ ui &lt;- dashboardPage(
             )
           )
         ),
-        fluidRow(
-          column(
-            width = 4,
-            actionButton(&quot;atualizar&quot;, &quot;Gerar Série&quot;)
-          )
-        ),
+        # fluidRow(
+        #   column(
+        #     width = 4,
+        #     actionButton(&quot;atualizar&quot;, &quot;Gerar Série&quot;)
+        #   )
+        # ),
         br(),
         fluidRow(
           box(
@@ -342,7 +342,7 @@ ui &lt;- dashboardPage(
         ),
         hr(style = &quot;border-top: 1px solid black;&quot;), # tag horizontal row style para mudar o css
         br(),
-        includeHTML(&quot;../05_code.html&quot;)
+        includeHTML(&quot;05_code.html&quot;)
       )
     )
   ),
@@ -350,7 +350,9 @@ ui &lt;- dashboardPage(
 )
 
 server &lt;- function(input, output, session) {
-  cetesb &lt;- readr::read_rds(&quot;../dados/cetesb.rds&quot;)
+  cetesb &lt;- readr::read_rds(&quot;cetesb.rds&quot;)
+  ssp &lt;- readr::read_rds(&quot;ssp.rds&quot;)
+  pokemon &lt;- readr::read_rds(&quot;pkmn.rds&quot;)
   #pagina 01
   observe({
     poluentes &lt;- cetesb |&gt;
@@ -378,7 +380,7 @@ server &lt;- function(input, output, session) {
   })
 
   #página 2
-  pokemon &lt;- readr::read_rds(&quot;../dados/pkmn.rds&quot;)
+
   output$ui_tipo_1 &lt;- renderUI({
     selectInput(
       &quot;tipo_1&quot;,
@@ -410,57 +412,60 @@ server &lt;- function(input, output, session) {
   })
   #página 3
   output$ui_regiao &lt;- renderUI({
-    ssp &lt;- readr::read_rds(&quot;../dados/ssp.rds&quot;)
-      selectInput(
-        &quot;regiao&quot;,
-        &quot;Selecione a região&quot;,
-        choices = ssp |&gt; pull(regiao_nome) |&gt; unique() |&gt; sort(),
-        selected = &quot;Araçatuba&quot;
-      )
-    })
 
-    output$ui_municipio &lt;- renderUI({
-      req(input$regiao)
-      selectInput(
-        &quot;municipio&quot;,
-        &quot;Selecione o município&quot;,
-        choices = ssp |&gt; filter(regiao_nome == input$regiao) |&gt;
-          pull(municipio_nome) |&gt; unique() |&gt; sort(),
-        selected = &quot;Carregando...&quot;
-      )
-    })
+    selectInput(
+      &quot;regiao&quot;,
+      &quot;Selecione a região&quot;,
+      choices = ssp |&gt; pull(regiao_nome) |&gt; unique() |&gt; sort(),
+      selected = &quot;Araçatuba&quot;
+    )
+  })
 
-    output$ui_delegacia &lt;- renderUI({
-      req(input$regiao)
-      req(input$municipio)
-      selectInput(
-        &quot;delegacia&quot;,
-        &quot;Selecione a delegacia&quot;,
-        choices = ssp |&gt; filter(regiao_nome == input$regiao,
-                                municipio_nome == input$municipio) |&gt;
-          pull(delegacia_nome) |&gt; unique() |&gt; sort(),
-        selected = &quot;Carregando...&quot;
-      )
-    })
+  output$ui_municipio &lt;- renderUI({
+    req(input$regiao)
+    selectInput(
+      &quot;municipio&quot;,
+      &quot;Selecione o município&quot;,
+      choices = ssp |&gt; filter(regiao_nome == input$regiao) |&gt;
+        pull(municipio_nome) |&gt; unique() |&gt; sort(),
+      selected = &quot;Carregando...&quot;
+    )
+  })
 
-    output$serie_furtos &lt;- renderPlot({
-      graf_furtos()
-    })
+  output$ui_delegacia &lt;- renderUI({
+    req(input$regiao)
+    req(input$municipio)
+    selectInput(
+      &quot;delegacia&quot;,
+      &quot;Selecione a delegacia&quot;,
+      choices = ssp |&gt; filter(regiao_nome == input$regiao,
+                              municipio_nome == input$municipio) |&gt;
+        pull(delegacia_nome) |&gt; unique() |&gt; sort(),
+      selected = &quot;Carregando...&quot;
+    )
+  })
 
-    graf_furtos &lt;- eventReactive(input$atualizar,{
-      ssp |&gt; filter(regiao_nome == input$regiao,
-                    municipio_nome == input$municipio,
-                    delegacia_nome == input$delegacia) |&gt;
-        mutate(
-          data = make_date(year = ano, month = mes)
-        ) |&gt;
-        group_by(data) |&gt;
-        summarise(
-          furtos = furto_outros + furto_veiculos
-        ) |&gt;
-        ggplot(aes(x=data,y=furtos))+
-        geom_line()
-    })
+  output$serie_furtos &lt;- renderPlot({
+    Sys.sleep(1.5)
+    validate(need(isTruthy(input$regiao),&quot;carregando região...&quot;))
+    validate(need(isTruthy(input$municipio),&quot;carregando município...&quot;))
+    validate(need(isTruthy(input$delegacia),&quot;carregando delegacia...&quot;))
+
+    ssp |&gt; filter(regiao_nome == input$regiao,
+                  municipio_nome == input$municipio,
+                  delegacia_nome == input$delegacia) |&gt;
+      mutate(
+        data = make_date(year = ano, month = mes)
+      ) |&gt;
+      group_by(data) |&gt;
+      summarise(
+        furtos = furto_outros + furto_veiculos
+      ) |&gt;
+      ggplot(aes(x=data,y=furtos))+
+      geom_line()
+  })
+
+
 
 }
 

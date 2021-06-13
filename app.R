@@ -146,12 +146,12 @@ ui <- dashboardPage(
             )
           )
         ),
-        fluidRow(
-          column(
-            width = 4,
-            actionButton("atualizar", "Gerar Série")
-          )
-        ),
+        # fluidRow(
+        #   column(
+        #     width = 4,
+        #     actionButton("atualizar", "Gerar Série")
+        #   )
+        # ),
         br(),
         fluidRow(
           box(
@@ -182,6 +182,8 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
   cetesb <- readr::read_rds("cetesb.rds")
+  ssp <- readr::read_rds("ssp.rds")
+  pokemon <- readr::read_rds("pkmn.rds")
   #pagina 01
   observe({
     poluentes <- cetesb |>
@@ -209,7 +211,7 @@ server <- function(input, output, session) {
   })
 
   #página 2
-  pokemon <- readr::read_rds("pkmn.rds")
+
   output$ui_tipo_1 <- renderUI({
     selectInput(
       "tipo_1",
@@ -241,7 +243,7 @@ server <- function(input, output, session) {
   })
   #página 3
   output$ui_regiao <- renderUI({
-    ssp <- readr::read_rds("ssp.rds")
+
     selectInput(
       "regiao",
       "Selecione a região",
@@ -275,11 +277,11 @@ server <- function(input, output, session) {
   })
 
   output$serie_furtos <- renderPlot({
-    graf_furtos()
-  })
+    Sys.sleep(1.5)
+    validate(need(isTruthy(input$regiao),"carregando região..."))
+    validate(need(isTruthy(input$municipio),"carregando município..."))
+    validate(need(isTruthy(input$delegacia),"carregando delegacia..."))
 
-
-  graf_furtos <- eventReactive(input$atualizar,{
     ssp |> filter(regiao_nome == input$regiao,
                   municipio_nome == input$municipio,
                   delegacia_nome == input$delegacia) |>
@@ -294,11 +296,8 @@ server <- function(input, output, session) {
       geom_line()
   })
 
+
+
 }
 
 shinyApp(ui, server)
-
-
-
-
-
