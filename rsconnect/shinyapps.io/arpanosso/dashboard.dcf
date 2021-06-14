@@ -5,10 +5,10 @@ account: arpanosso
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4263889
-bundleId: 4711384
+bundleId: 4715052
 url: https://arpanosso.shinyapps.io/dashboard/
-when: 1623593827.20651
-lastSyncTime: 1623593827.20651
+when: 1623682518.68432
+lastSyncTime: 1623682518.68432
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: credito.rds|dados/cetesb.rds|dados/credito.rds|dados/imdb.rds|dados/pkmn.rds|dados/ssp.rds|DICAS_DESENVOLVIMENTO.R|estat-inf-parametros-normal.R|imdb.rds|index.html|index.Rmd|exercicios|exercicios_resolvidos|pratica|slides
+ignoredFiles: 05_code.md|credito.rds|dados/cetesb.rds|dados/credito.rds|dados/imdb.rds|dados/pkmn.rds|dados/ssp.rds|DICAS_DESENVOLVIMENTO.R|estat-inf-parametros-normal.R|imdb.rds|index.html|index.Rmd|exercicios|exercicios_resolvidos|pratica|slides

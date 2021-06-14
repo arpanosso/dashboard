@@ -198,7 +198,7 @@ library(tidyverse)
 library(lubridate)
 
 cetesb &lt;- readr::read_rds(&quot;cetesb.rds&quot;)
-
+ssp &lt;- readr::read_rds(&quot;ssp.rds&quot;)
 ui &lt;- dashboardPage(
   header = dashboardHeader(title = &quot;Exercício 05&quot;),
   sidebar = dashboardSidebar(
@@ -224,7 +224,7 @@ ui &lt;- dashboardPage(
         br(),
         fluidRow(
           box(
-            width = 8,
+            width = 12,
             fluidRow(
               column(
                 width = 6,
@@ -308,19 +308,34 @@ ui &lt;- dashboardPage(
             fluidRow(
               column(
                 width = 12,
-                uiOutput(&quot;ui_regiao&quot;),
-                uiOutput(&quot;ui_municipio&quot;),
-                uiOutput(&quot;ui_delegacia&quot;)
+                selectInput(
+                  &quot;regiao&quot;,
+                  &quot;Selecione a região&quot;,
+                  choices = ssp |&gt; pull(regiao_nome) |&gt; unique() |&gt; sort(),
+                  selected = &quot;Araçatuba&quot;
+                )
+              ),
+              column(
+                width = 12,
+                selectInput(
+                  &quot;municipio&quot;,
+                  &quot;Selecione o município&quot;,
+                  choices = &quot;&quot;,
+                  selected = &quot;Carregando...&quot;
+                )
+              ),
+              column(
+                width = 12,
+                selectInput(
+                  &quot;delegacia&quot;,
+                  &quot;Selecione a delegacia&quot;,
+                  choices = &quot;&quot;,
+                  selected = &quot;Carregando...&quot;
+                )
               )
             )
           )
         ),
-        # fluidRow(
-        #   column(
-        #     width = 4,
-        #     actionButton(&quot;atualizar&quot;, &quot;Gerar Série&quot;)
-        #   )
-        # ),
         br(),
         fluidRow(
           box(
@@ -328,7 +343,9 @@ ui &lt;- dashboardPage(
             title = &quot;Série do número de furtos&quot;,
             solidHeader = TRUE, #cabeçalho colorido
             status = &quot;primary&quot;,  # para mudar a cor igual do anterior
-            plotOutput(&quot;serie_furtos&quot;)
+            shinycssloaders::withSpinner(
+              plotOutput(&quot;serie_furtos&quot;)
+            )
           )
         )
       ),
@@ -411,45 +428,40 @@ server &lt;- function(input, output, session) {
       geom_point()
   })
   #página 3
-  output$ui_regiao &lt;- renderUI({
 
-    selectInput(
-      &quot;regiao&quot;,
-      &quot;Selecione a região&quot;,
-      choices = ssp |&gt; pull(regiao_nome) |&gt; unique() |&gt; sort(),
-      selected = &quot;Araçatuba&quot;
-    )
-  })
+  observe({
+    municipios &lt;- ssp |&gt;
+      filter(regiao_nome == input$regiao) |&gt;
+      pull(municipio_nome) |&gt;
+      unique() |&gt;
+      sort()
 
-  output$ui_municipio &lt;- renderUI({
-    req(input$regiao)
-    selectInput(
+    updateSelectInput(
+      session,
       &quot;municipio&quot;,
-      &quot;Selecione o município&quot;,
-      choices = ssp |&gt; filter(regiao_nome == input$regiao) |&gt;
-        pull(municipio_nome) |&gt; unique() |&gt; sort(),
-      selected = &quot;Carregando...&quot;
+      choices = municipios
     )
   })
 
-  output$ui_delegacia &lt;- renderUI({
-    req(input$regiao)
-    req(input$municipio)
-    selectInput(
+  observe({
+    delegacias &lt;- ssp |&gt;
+      filter(regiao_nome == input$regiao,
+             municipio_nome == input$municipio) |&gt;
+      pull(delegacia_nome) |&gt;
+      unique() |&gt;
+      sort()
+
+    updateSelectInput(
+      session,
       &quot;delegacia&quot;,
-      &quot;Selecione a delegacia&quot;,
-      choices = ssp |&gt; filter(regiao_nome == input$regiao,
-                              municipio_nome == input$municipio) |&gt;
-        pull(delegacia_nome) |&gt; unique() |&gt; sort(),
-      selected = &quot;Carregando...&quot;
+      choices = delegacias
     )
   })
 
   output$serie_furtos &lt;- renderPlot({
-    Sys.sleep(1.5)
-    validate(need(isTruthy(input$regiao),&quot;carregando região...&quot;))
-    validate(need(isTruthy(input$municipio),&quot;carregando município...&quot;))
-    validate(need(isTruthy(input$delegacia),&quot;carregando delegacia...&quot;))
+    #validate(need(isTruthy(input$regiao),&quot;carregando região...&quot;))
+    #validate(need(isTruthy(input$municipio),&quot;carregando município...&quot;))
+    #validate(need(isTruthy(input$delegacia),&quot;carregando delegacia...&quot;))
 
     ssp |&gt; filter(regiao_nome == input$regiao,
                   municipio_nome == input$municipio,
@@ -464,9 +476,6 @@ server &lt;- function(input, output, session) {
       ggplot(aes(x=data,y=furtos))+
       geom_line()
   })
-
-
-
 }
 
 shinyApp(ui, server)</code></pre>

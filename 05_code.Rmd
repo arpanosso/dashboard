@@ -30,7 +30,7 @@ library(tidyverse)
 library(lubridate)
 
 cetesb <- readr::read_rds("cetesb.rds")
-
+ssp <- readr::read_rds("ssp.rds")
 ui <- dashboardPage(
   header = dashboardHeader(title = "Exercício 05"),
   sidebar = dashboardSidebar(
@@ -56,7 +56,7 @@ ui <- dashboardPage(
         br(),
         fluidRow(
           box(
-            width = 8,
+            width = 12,
             fluidRow(
               column(
                 width = 6,
@@ -140,19 +140,34 @@ ui <- dashboardPage(
             fluidRow(
               column(
                 width = 12,
-                uiOutput("ui_regiao"),
-                uiOutput("ui_municipio"),
-                uiOutput("ui_delegacia")
+                selectInput(
+                  "regiao",
+                  "Selecione a região",
+                  choices = ssp |> pull(regiao_nome) |> unique() |> sort(),
+                  selected = "Araçatuba"
+                )
+              ),
+              column(
+                width = 12,
+                selectInput(
+                  "municipio",
+                  "Selecione o município",
+                  choices = "",
+                  selected = "Carregando..."
+                )
+              ),
+              column(
+                width = 12,
+                selectInput(
+                  "delegacia",
+                  "Selecione a delegacia",
+                  choices = "",
+                  selected = "Carregando..."
+                )
               )
             )
           )
         ),
-        # fluidRow(
-        #   column(
-        #     width = 4,
-        #     actionButton("atualizar", "Gerar Série")
-        #   )
-        # ),
         br(),
         fluidRow(
           box(
@@ -160,7 +175,9 @@ ui <- dashboardPage(
             title = "Série do número de furtos",
             solidHeader = TRUE, #cabeçalho colorido
             status = "primary",  # para mudar a cor igual do anterior
-            plotOutput("serie_furtos")
+            shinycssloaders::withSpinner(
+              plotOutput("serie_furtos")
+            )
           )
         )
       ),
@@ -243,45 +260,40 @@ server <- function(input, output, session) {
       geom_point()
   })
   #página 3
-  output$ui_regiao <- renderUI({
 
-    selectInput(
-      "regiao",
-      "Selecione a região",
-      choices = ssp |> pull(regiao_nome) |> unique() |> sort(),
-      selected = "Araçatuba"
-    )
-  })
+  observe({
+    municipios <- ssp |>
+      filter(regiao_nome == input$regiao) |>
+      pull(municipio_nome) |>
+      unique() |>
+      sort()
 
-  output$ui_municipio <- renderUI({
-    req(input$regiao)
-    selectInput(
+    updateSelectInput(
+      session,
       "municipio",
-      "Selecione o município",
-      choices = ssp |> filter(regiao_nome == input$regiao) |>
-        pull(municipio_nome) |> unique() |> sort(),
-      selected = "Carregando..."
+      choices = municipios
     )
   })
 
-  output$ui_delegacia <- renderUI({
-    req(input$regiao)
-    req(input$municipio)
-    selectInput(
+  observe({
+    delegacias <- ssp |>
+      filter(regiao_nome == input$regiao,
+             municipio_nome == input$municipio) |>
+      pull(delegacia_nome) |>
+      unique() |>
+      sort()
+
+    updateSelectInput(
+      session,
       "delegacia",
-      "Selecione a delegacia",
-      choices = ssp |> filter(regiao_nome == input$regiao,
-                              municipio_nome == input$municipio) |>
-        pull(delegacia_nome) |> unique() |> sort(),
-      selected = "Carregando..."
+      choices = delegacias
     )
   })
 
   output$serie_furtos <- renderPlot({
-    Sys.sleep(1.5)
-    validate(need(isTruthy(input$regiao),"carregando região..."))
-    validate(need(isTruthy(input$municipio),"carregando município..."))
-    validate(need(isTruthy(input$delegacia),"carregando delegacia..."))
+    #validate(need(isTruthy(input$regiao),"carregando região..."))
+    #validate(need(isTruthy(input$municipio),"carregando município..."))
+    #validate(need(isTruthy(input$delegacia),"carregando delegacia..."))
 
     ssp |> filter(regiao_nome == input$regiao,
                   municipio_nome == input$municipio,
@@ -296,12 +308,8 @@ server <- function(input, output, session) {
       ggplot(aes(x=data,y=furtos))+
       geom_line()
   })
-
-
-
 }
 
 shinyApp(ui, server)
-
 ```
 
