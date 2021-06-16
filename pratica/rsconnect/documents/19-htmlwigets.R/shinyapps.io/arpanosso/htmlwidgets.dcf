@@ -1,0 +1,14 @@
+name: htmlwidgets
+title: htmlwidgets
+username:
+account: arpanosso
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4280674
+bundleId: 4724126
+url: https://arpanosso.shinyapps.io/htmlwidgets/
+when: 1623864641.07692
+lastSyncTime: 1623864641.07792
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 01-ola-mundo.R|02-output.R|03-output-input.R|04-hist-normal.R|05-dois-output.R|06-reactive.R|07-event-reactive.R|08-debug.R|09-dados.R|10-exemplo-html.html|11-gridsystem.R|12-sideBarLayout.R|13-navbarPage.R|14-shinydashboardLayout.R|15-shinydashboardMenu.R|16-shinydashboardElementos.R|17-bs4Dash.R|18-extra-botao-download.R|18-observeReactive.R|18-ui-reativa.R|18-ui-reativa_2.R
