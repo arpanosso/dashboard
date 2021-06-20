@@ -3,6 +3,7 @@ library(shinydashboard)
 library(fresh)
 library(dplyr)
 library(shinycssloaders)
+library(ggplot2)
 
 meu_tema <- create_theme(
   adminlte_color(
@@ -62,6 +63,13 @@ ui <- dashboardPage(
               )
             )
           )
+        ),
+        br(),
+        fluidRow(
+          column(
+            width = 12,
+            plotOutput("boxplot")
+          )
         )
       ),
       ##### Página 04 - Com o Código
@@ -107,7 +115,7 @@ server <- function(input, output, session) {
 
   output$tabela_visao <- renderTable({
     req(input$geracao)
-    base_pkmn()
+    base_pkmn() |> select(id, id_especie, id_geracao,cor_1)
   })
 
   base_pkmn <- eventReactive(input$atualizar, ignoreNULL =FALSE,{
@@ -118,11 +126,13 @@ server <- function(input, output, session) {
   observe({
     req(input$geracao)
 
+
     tipos<-base_pkmn() |>
       pull(tipo) |>
       sort() |>
       unique()
 
+    # Página 3
     updateSelectInput(
       session,
       "tipo_1",
@@ -138,6 +148,47 @@ server <- function(input, output, session) {
     )
   })
 
+  # box plot de , ataque_especial  defesa_especial  velocidade
+  output$boxplot <- renderPlot({
+    df<-base_pkmn() |>
+      filter(tipo == input$tipo_1 | tipo == input$tipo_2) |>
+      pivot_longer(
+        cols = hp:velocidade,
+        names_to = "stats",
+        values_to = "valor"
+        )
+
+    df<-base_pkmn() |>
+      filter(tipo == input$tipo_1 | tipo == input$tipo_2) |>
+      pivot_longer(
+        cols = hp:velocidade,
+        names_to = "stats",
+        values_to = "valor"
+      )
+
+    cor<-df |>
+      group_by(tipo, cor_1) |>
+      summarise( count = n()) |>
+      pull(cor_1)
+    cores<-cor[c(1,length(cor))]
+
+
+    df |>
+      group_by(tipo,stats) |>
+      ggplot(aes(x=stats,y=valor, fill=tipo)) +
+      geom_boxplot()+
+      scale_color_manual(values = cores) +
+      theme_minimal()
+  })
 
 }
 shinyApp(ui, server)
+
+
+
+
+
+
+
+
+
