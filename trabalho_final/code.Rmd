@@ -1,0 +1,88 @@
+
+## app.R
+
+```{r eval=FALSE}
+library(shiny)
+library(shinydashboard)
+library(fresh)
+library(dplyr)
+
+meu_tema <- create_theme(
+  adminlte_color(
+    blue = "#4c51bd"
+  )
+)
+
+pkmn <- readr::read_rds("pkmn.rds")
+geracoes <- pkmn |> filter(!is.na(id_geracao)) |>
+  pull(id_geracao) |> unique()
+ui <- dashboardPage(
+  header = dashboardHeader(title = "Pokemon Dashboard"),
+  sidebar = dashboardSidebar(
+    sidebarMenu(
+      menuItem("Visão geral", tabName = "visao"),
+      menuItem("Por tipo", tabName = "tipo"),
+      menuItem("Comparando tipos", tabName = "comparando"),
+      menuItem("Código", tabName = "codigo",
+               badgeLabel = "NOVO", badgeColor = "red"),
+      hr(style = "border-top: 1px solid white;"),
+      checkboxGroupInput(
+        inputId = "geracao",
+        label = "Gerações",
+        choices = paste("Geração",geracoes),
+        selected = "Geração 1")
+    ),
+    actionButton("atualizar", "Incluir")
+  ),
+  body = dashboardBody(
+    use_theme(meu_tema),
+    tags$link(
+      rel = "stylesheet",
+      type = "text/css",
+      href = "custom.css"
+    ),
+
+    #Página 04 - Com o Código
+    tabItem(
+      tabName = "code",
+      fluidRow(
+        column(
+          width = 12,
+          h1("Código em R")
+        )
+      ),
+      hr(style = "border-top: 1px solid black;"), # tag horizontal row style para mudar o css
+      br(),
+      includeHTML("../05_code.html")
+    )
+
+  ),
+  title = "Pokemon Dashboard"
+
+)
+
+server <- function(input, output, session) {
+
+}
+
+shinyApp(ui, server)
+```
+
+
+## www/custom.css
+
+```{r,eval=FALSE}
+.skin-blue .main-header .navbar {
+    background-color: #4c51bd;
+}
+
+.skin-blue .main-header .logo {
+    background-color: #4c51bd;
+}
+
+.skin-blue .main-header .logo {
+    color: #e9f614;
+    font-family: "Pokemon Solid";
+}
+```
+
