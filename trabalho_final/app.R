@@ -4,12 +4,25 @@ library(fresh)
 library(dplyr)
 library(shinycssloaders)
 library(ggplot2)
+library(tidyr)
+library(stringr)
+library(forcats)
 
 meu_tema <- create_theme(
   adminlte_color(
     blue = "#4c51bd"
   )
 )
+
+tipos <- "pkmn.rds" |> readr::read_rds() |>
+  pull(tipo_1) |>
+  sort() |>
+  unique()
+
+geracoes <- "pkmn.rds" |>
+  readr::read_rds() |>
+  filter(!is.na(id_geracao), id_geracao != 7) |>
+  pull(id_geracao) |> unique()
 
 ui <- dashboardPage(
   header = dashboardHeader(title = "Pokemon Dashboard"),
@@ -18,12 +31,26 @@ ui <- dashboardPage(
       menuItem("Visão geral", tabName = "visao"),
       menuItem("Por tipo", tabName = "tipo"),
       menuItem("Comparando tipos", tabName = "comparando"),
-      menuItem("Código", tabName = "codigo",
-               badgeLabel = "NOVO", badgeColor = "red"),
+      menuItem("Código", tabName = "codigo",badgeLabel = "NOVO",
+               badgeColor = "green"),
+      menuItem("Reatividade", tabName = "reatividade",badgeLabel = "NOVO",
+               badgeColor = "green"),
       hr(style = "border-top: 1px solid white;"),
-      withSpinner(uiOutput("ui_geracao"))
+
+      checkboxGroupInput(
+        inputId = "geracao",
+        label = "Gerações",
+        inline=FALSE,
+        choiceValues = geracoes,
+        choiceNames = paste("Geração",geracoes),
+        selected = 1)
     ),
-    actionButton("atualizar", "Incluir")
+    fluidRow(
+      column(
+        width = 12,
+        actionButton("atualizar", "Incluir")
+      )
+    )
   ),
 
   body = dashboardBody(
@@ -33,12 +60,89 @@ ui <- dashboardPage(
       type = "text/css",
       href = "custom.css"
     ),
-    ### Página 3 - comparando tipos
+
+# Página 1 ui_visao_geral ----------------------------------------------------------
     tabItems(
       tabItem(
         tabName = "visao",
-        tableOutput("tabela_visao")
+        fluidRow(
+          box(
+            width = 6,
+            "Quantidade por tipo",
+            plotOutput("boxplot_3"),
+            height = "615px"
+          ),
+          fluidRow(
+            column(
+              width = 6,
+              infoBoxOutput("pesadoT",width = 8),
+              column(width = 4,uiOutput("imagem1T")),
+              infoBoxOutput("altoT",width = 8),
+              column(width = 4,uiOutput("imagem2T")),
+              infoBoxOutput("hpT",width = 8),
+              column(width = 4,uiOutput("imagem3T")),
+              infoBoxOutput("ataqueT",width = 8),
+              column(width = 4,uiOutput("imagem4T")),
+              infoBoxOutput("defesaT",width = 8),
+              column(width = 4,uiOutput("imagem5T")),
+              infoBoxOutput("velocidadeT",width = 8),
+              column(width = 4,uiOutput("imagem6T")),
+            )
+          )
+        )
       ),
+
+# Página 2 ui_01_tipo --------------------------------------------------------------
+
+      tabItem(
+        tabName = "tipo",
+        fluidRow(
+          box(
+            width = 12,
+            fluidRow(
+              column(
+                width = 3,
+                selectInput(
+                  "tipo",
+                  "Tipo",
+                  choices = tipos,
+                  selected = "grama"
+                )
+              ),
+              infoBoxOutput("apenas_1",width = 3),
+              infoBoxOutput("primeiro_tipo",width = 3),
+              infoBoxOutput("segundo_tipo",width = 3)
+            )
+          ),
+          br(),
+          box(
+            width = 6,
+            "Distribuição dos status",
+            plotOutput("boxplot_2"),
+            height = "615px"
+          ),
+          fluidRow(
+            column(
+              width = 6,
+              infoBoxOutput("pesado",width = 8),
+              column(width = 4,uiOutput("imagem1")),
+              infoBoxOutput("alto",width = 8),
+              column(width = 4,uiOutput("imagem2")),
+              infoBoxOutput("hp",width = 8),
+              column(width = 4,uiOutput("imagem3")),
+              infoBoxOutput("ataque",width = 8),
+              column(width = 4,uiOutput("imagem4")),
+              infoBoxOutput("defesa",width = 8),
+              column(width = 4,uiOutput("imagem5")),
+              infoBoxOutput("velocidade",width = 8),
+              column(width = 4,uiOutput("imagem6")),
+
+            )
+          )
+        )
+      ),
+
+# Página 3 ui_compara tipo ---------------------------------------------------------
       tabItem(
         tabName = "comparando",
         fluidRow(
@@ -50,15 +154,17 @@ ui <- dashboardPage(
                 selectInput(
                   "tipo_1",
                   "Tipo 1",
-                  choices = ""
+                  choices = tipos,
+                  selected = "água"
                 )
               ),
               column(
                 width = 6,
                 selectInput(
-                    "tipo_2",
-                    "Tipo 2",
-                    choices = ""
+                  "tipo_2",
+                  "Tipo 2",
+                  choices = tipos,
+                  selected = "fogo"
                 )
               )
             )
@@ -72,9 +178,10 @@ ui <- dashboardPage(
           )
         )
       ),
-      ##### Página 04 - Com o Código
+
+# Página 4 ui_código ---------------------------------------------------------------
       tabItem(
-        tabName = "code",
+        tabName = "codigo",
         fluidRow(
           column(
             width = 12,
@@ -84,6 +191,20 @@ ui <- dashboardPage(
         hr(style = "border-top: 1px solid black;"), # tag horizontal row style para mudar o css
         br(),
         includeHTML("code.html")
+      ),
+
+# Página 5 ui_reactlog -------------------------------------------------------------
+      tabItem(
+        tabName = "reatividade",
+        fluidRow(
+          column(
+            width = 12,
+            h1("mapa de reatividade")
+          )
+        ),
+        hr(style = "border-top: 1px solid black;"), # tag horizontal row style para mudar o css
+        br(),
+        uiOutput("reatividade")
       )
     )
   ),
@@ -91,74 +212,332 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
-  #Sys.sleep("2")
+  pkmn <- "pkmn.rds" |> readr::read_rds()
 
+  cores <- pkmn |>
+    filter(!is.na(cor_1),!is.na(cor_2)) |>
+    pivot_longer(cols = cor_1,
+                 names_to = "pos",
+                 values_to = "cor") |>
+    group_by(tipo_1,cor) |>
+    summarise(n=n()) |>
+    mutate(MAX = max(n,na.rm=TRUE)) |>
+    filter(n==MAX) |>
+    select(tipo_1, cor)
 
-  pkmn <- "pkmn.rds" |> readr::read_rds() |>
-    pivot_longer(cols = starts_with("tipo"),
-                 names_to = "tipo_",
-                 values_to = "tipo"
-                 ) |>
-    filter(!is.na(tipo))
+  pega_stats <- function(df, stat, filtro=""){
+    if(filtro == ""){
+      df |> arrange(desc(.data[[stat]])) |> slice(1)
+    }else{
+      df |>filter(tipo_1 == filtro | tipo_2 == filtro) |>
+        arrange(desc(.data[[stat]])) |> slice(1)
+    }
+  }
 
-  output$ui_geracao <- renderUI({
-    geracoes <- pkmn |> filter(!is.na(id_geracao)) |>
-      pull(id_geracao) |> unique()
-    checkboxGroupInput(
-    inputId = "geracao",
-    label = "Gerações",
-    inline=FALSE,
-    choiceValues = geracoes,
-    choiceNames = paste("Geração",geracoes),
-    selected = 1)
-  })
-
-  output$tabela_visao <- renderTable({
+  base_pkmn <- eventReactive(input$atualizar, ignoreNULL = FALSE,{
     req(input$geracao)
-    base_pkmn() |> select(id, id_especie, id_geracao,cor_1)
-  })
-
-  base_pkmn <- eventReactive(input$atualizar, ignoreNULL =FALSE,{
     pkmn |>
-      filter( id_geracao %in% input$geracao)
+      filter(id_geracao %in% input$geracao)
   })
 
-  observe({
-    req(input$geracao)
-
-
-    tipos<-base_pkmn() |>
+# Pagina 1 - server -------------------------------------------------------
+  output$boxplot_3 <- renderPlot({
+    #req(input$geracao)
+    tipo_bx3 <- base_pkmn() |>
+      pivot_longer(
+        cols = starts_with("tipo"),
+        names_to = "tipo_",
+        values_to = "tipo")|>
+      filter(!is.na(tipo)) |>
       pull(tipo) |>
-      sort() |>
       unique()
 
-    # Página 3
-    updateSelectInput(
-      session,
-      "tipo_1",
-      choices = tipos,
-      selected = "água"
-    )
+    base_pkmn() |>
+      pivot_longer(
+        cols = starts_with("tipo"),
+        names_to = "tipo_",
+        values_to = "tipo")|>
+      filter(!is.na(tipo)) |>
+      group_by(tipo) |>
+      summarise(n  = n()) |>
+      mutate(
+        tipo = tipo |>
+          fct_lump(n=18, w = n) |>
+          fct_reorder(n)
+      )  |>
+      ggplot(aes(x=n,y=tipo)) +
+      geom_col(fill = cores |> filter(tipo_1 %in% tipo_bx3) |> pull(cor))+
+      theme_minimal()
 
-    updateSelectInput(
-      session,
-      "tipo_2",
-      choices = tipos,
-      selected = "fogo"
+  }, height = 570)
+
+  output$pesadoT <- renderInfoBox({
+    infoBox(
+      title = "MAIS PESADO",
+      value = paste(pega_stats(base_pkmn(),"peso")$peso," Kg"),
+      icon = icon("weight-hanging"),
+      subtitle = pega_stats(base_pkmn(),"peso")$pokemon,
+      fill = TRUE,
+      color="red"
     )
   })
 
-  # box plot de , ataque_especial  defesa_especial  velocidade
-  output$boxplot <- renderPlot({
-    df<-base_pkmn() |>
-      filter(tipo == input$tipo_1 | tipo == input$tipo_2) |>
+  output$altoT <- renderInfoBox({
+    infoBox(
+      title = "MAIS ALTO",
+      value = paste(pega_stats(base_pkmn(),"altura")$altura," m"),
+      icon = icon("long-arrow-alt-up"),
+      subtitle = pega_stats(base_pkmn(),"altura")$pokemon,
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$hpT <- renderInfoBox({
+    infoBox(
+      title = "MAIOR HP",
+      subtitle = pega_stats(base_pkmn(),"hp")$pokemon,
+      value = pega_stats(base_pkmn(),"hp")$hp,
+      icon = icon("heart"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$ataqueT <- renderInfoBox({
+    infoBox(
+      title = "MAIOR ATAQUE",
+      value = pega_stats(base_pkmn(),"ataque")$ataque,
+      subtitle = pega_stats(base_pkmn(),"ataque")$pokemon,
+      icon = icon("hand-rock"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$defesaT <- renderInfoBox({
+    infoBox(
+      title = "MAIOR DEFESA",
+      value = pega_stats(base_pkmn(),"defesa")$defesa,
+      subtitle = pega_stats(base_pkmn(),"defesa")$pokemon,
+      icon = icon("shield-alt"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$velocidadeT <- renderInfoBox({
+    infoBox(
+      title = "MAIS RÁPIDO",
+      value = pega_stats(base_pkmn(),"velocidade")$velocidade,
+      subtitle = pega_stats(base_pkmn(),"velocidade")$pokemon,
+      icon = icon("angle-double-right"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$imagem1T <- renderUI({
+    img(src = pega_stats(base_pkmn(),"peso")$url_imagem, width = "100px")
+  })
+
+  output$imagem2T <- renderUI({
+    img(src = pega_stats(base_pkmn(),"altura")$url_imagem, width = "100px")
+  })
+
+  output$imagem3T <- renderUI({
+    img(src = pega_stats(base_pkmn(),"hp")$url_imagem, width = "100px")
+  })
+
+  output$imagem4T <- renderUI({
+    img(src =pega_stats(base_pkmn(),"ataque")$url_imagem, width = "100px")
+  })
+
+  output$imagem5T <- renderUI({
+    img(src = pega_stats(base_pkmn(),"defesa")$url_imagem, width = "100px")
+  })
+
+  output$imagem6T <- renderUI({
+    img(src = pega_stats(base_pkmn(),"velocidade")$url_imagem, width = "100px")
+  })
+
+
+# Página 2 - server -------------------------------------------------------
+  output$pesado <- renderInfoBox({
+    infoBox(
+      title = "MAIS PESADO",
+      value = paste(pega_stats(base_pkmn(),"peso",input$tipo)$peso," Kg"),
+      icon = icon("weight-hanging"),
+      subtitle = pega_stats(base_pkmn(),"peso",input$tipo)$pokemon,
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$alto <- renderInfoBox({
+    infoBox(
+      title = "MAIS ALTO",
+      value = paste(pega_stats(base_pkmn(),"altura",input$tipo)$altura," m"),
+      icon = icon("long-arrow-alt-up"),
+      subtitle = pega_stats(base_pkmn(),"altura",input$tipo)$pokemon,
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$hp <- renderInfoBox({
+    infoBox(
+      title = "MAIOR HP",
+      subtitle = pega_stats(base_pkmn(),"hp",input$tipo)$pokemon,
+      value = pega_stats(base_pkmn(),"hp",input$tipo)$hp,
+      icon = icon("heart"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$ataque <- renderInfoBox({
+    infoBox(
+      title = "MAIOR ATAQUE",
+      value = pega_stats(base_pkmn(),"ataque",input$tipo)$ataque,
+      subtitle = pega_stats(base_pkmn(),"ataque",input$tipo)$pokemon,
+      icon = icon("hand-rock"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$defesa <- renderInfoBox({
+    infoBox(
+      title = "MAIOR DEFESA",
+      value = pega_stats(base_pkmn(),"defesa",input$tipo)$defesa,
+      subtitle = pega_stats(base_pkmn(),"defesa",input$tipo)$pokemon,
+      icon = icon("shield-alt"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$velocidade <- renderInfoBox({
+    infoBox(
+      title = "MAIS RÁPIDO",
+      value = pega_stats(base_pkmn(),"velocidade",input$tipo)$velocidade,
+      subtitle = pega_stats(base_pkmn(),"velocidade",input$tipo)$pokemon,
+      icon = icon("angle-double-right"),
+      fill = TRUE,
+      color="red"
+    )
+  })
+
+  output$apenas_1 <- renderInfoBox({
+    num_tipo_1 <- base_pkmn() |>
+      filter(
+        tipo_1 == input$tipo,
+        is.na(tipo_2)
+      ) |>
+      nrow()
+
+    infoBox(
+      title = paste0("APENAS ", str_to_upper(input$tipo)),
+      value = num_tipo_1,
+      icon = icon("hashtag"),
+      fill = TRUE,
+      color="light-blue",
+      width = 3,
+    )
+  })
+
+  output$primeiro_tipo<- renderInfoBox({
+    num_primeiro_tipo <- base_pkmn() |>
+      filter(
+        tipo_1 == input$tipo & !is.na(tipo_2) ) |>
+      nrow()
+
+    infoBox(
+      title = "PRIMEIRO TIPO",
+      value = num_primeiro_tipo,
+      icon = icon("hashtag"),
+      fill = TRUE,
+      color="light-blue",
+      width = 3
+    )
+  })
+
+  output$segundo_tipo<- renderInfoBox({
+    num_segundo_tipo <- base_pkmn() |>
+      filter(
+        tipo_2 == input$tipo) |>
+      nrow()
+
+    infoBox(
+      title = "SEGUNDO TIPO",
+      value = num_segundo_tipo,
+      icon = icon("hashtag"),
+      fill = TRUE,
+      color="light-blue",
+      width = 3
+    )
+  })
+
+  output$boxplot_2 <- renderPlot({
+   # req(input$tipo)
+    base_pkmn() |>
+      filter(tipo_1 == input$tipo | tipo_2 == input$tipo) |>
       pivot_longer(
         cols = hp:velocidade,
         names_to = "stats",
         values_to = "valor"
-        )
+      ) |>
+      group_by(stats) |>
+      ggplot(aes(x=stats,y=valor)) +
+      geom_boxplot()+
+      theme_minimal()
+  }, height = 570)
 
+  output$imagem1 <- renderUI({
+    maior_hp<- base_pkmn() |> #slice(1)
+      filter(id_geracao %in% input$geracao,tipo_1 == input$tipo) |>
+      group_by(url_imagem) |>
+      summarise( max = max(hp)) |>
+      arrange(desc(max)) |> slice(1)
+    img(src = pega_stats(base_pkmn(),"peso",input$tipo)$url_imagem,
+        width = "100px")
+  })
+
+  output$imagem2 <- renderUI({
+    img(src = pega_stats(base_pkmn(),"altura",input$tipo)$url_imagem,
+        width = "100px")
+  })
+
+  output$imagem3 <- renderUI({
+    img(src = pega_stats(base_pkmn(),"hp",input$tipo)$url_imagem,
+        width = "100px")
+  })
+
+  output$imagem4 <- renderUI({
+    img(src =pega_stats(base_pkmn(),"ataque",input$tipo)$url_imagem,
+        width = "100px")
+  })
+
+  output$imagem5 <- renderUI({
+    img(src = pega_stats(base_pkmn(),"defesa",input$tipo)$url_imagem,
+        width = "100px")
+  })
+
+  output$imagem6 <- renderUI({
+    img(src = pega_stats(base_pkmn(),"velocidade",input$tipo)$url_imagem,
+        width = "100px")
+  })
+
+
+# Página 3 - server -------------------------------------------------------
+  output$boxplot <- renderPlot({
+    #req(input$tipo_1)
     df<-base_pkmn() |>
+      pivot_longer(
+        cols = starts_with("tipo"),
+        names_to = "tipo_",
+        values_to = "tipo") |>
       filter(tipo == input$tipo_1 | tipo == input$tipo_2) |>
       pivot_longer(
         cols = hp:velocidade,
@@ -166,29 +545,25 @@ server <- function(input, output, session) {
         values_to = "valor"
       )
 
-    cor<-df |>
-      group_by(tipo, cor_1) |>
-      summarise( count = n()) |>
-      pull(cor_1)
-    cores<-cor[c(1,length(cor))]
-
-
-    df |>
+    p<- df |>
       group_by(tipo,stats) |>
       ggplot(aes(x=stats,y=valor, fill=tipo)) +
       geom_boxplot()+
-      scale_color_manual(values = cores) +
       theme_minimal()
+
+    p+scale_fill_manual(values=c(cores |>
+                                    filter(tipo_1==input$tipo_1) |>
+                                    pull(cor),
+                                 cores |>
+                                    filter(tipo_1==input$tipo_2) |>
+                                    pull(cor)
+    ))
   })
 
+# Página 5 - server --------------------------------------------------------
+  output$reatividade <- renderUI({
+    img(src = "mapa_reatividade.png",
+        width = "1200px")
+  })
 }
 shinyApp(ui, server)
-
-
-
-
-
-
-
-
-

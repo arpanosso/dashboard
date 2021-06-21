@@ -1,0 +1,13 @@
+name: trabalho_final_dashboard
+title: trabalho_final_dashboard
+username:
+account: arpanosso
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4300170
+bundleId: 4740390
+url: https://arpanosso.shinyapps.io/trabalho_final_dashboard/
+when: 1624299987.74746
+lastSyncTime: 1624299987.74746
+asMultiple: FALSE
+asStatic: FALSE

@@ -173,6 +173,11 @@ pre code {
 library(shinydashboard)
 library(fresh)
 library(dplyr)
+library(shinycssloaders)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+library(forcats)
 
 meu_tema &lt;- create_theme(
   adminlte_color(
@@ -180,9 +185,16 @@ meu_tema &lt;- create_theme(
   )
 )
 
-pkmn &lt;- readr::read_rds(&quot;pkmn.rds&quot;)
-geracoes &lt;- pkmn |&gt; filter(!is.na(id_geracao)) |&gt;
+tipos &lt;- &quot;pkmn.rds&quot; |&gt; readr::read_rds() |&gt;
+  pull(tipo_1) |&gt;
+  sort() |&gt;
+  unique()
+
+geracoes &lt;- &quot;pkmn.rds&quot; |&gt;
+  readr::read_rds() |&gt;
+  filter(!is.na(id_geracao), id_geracao != 7) |&gt;
   pull(id_geracao) |&gt; unique()
+
 ui &lt;- dashboardPage(
   header = dashboardHeader(title = &quot;Pokemon Dashboard&quot;),
   sidebar = dashboardSidebar(
@@ -190,17 +202,28 @@ ui &lt;- dashboardPage(
       menuItem(&quot;Visão geral&quot;, tabName = &quot;visao&quot;),
       menuItem(&quot;Por tipo&quot;, tabName = &quot;tipo&quot;),
       menuItem(&quot;Comparando tipos&quot;, tabName = &quot;comparando&quot;),
-      menuItem(&quot;Código&quot;, tabName = &quot;codigo&quot;,
-               badgeLabel = &quot;NOVO&quot;, badgeColor = &quot;red&quot;),
+      menuItem(&quot;Código&quot;, tabName = &quot;codigo&quot;,badgeLabel = &quot;NOVO&quot;,
+               badgeColor = &quot;green&quot;),
+      menuItem(&quot;Reatividade&quot;, tabName = &quot;reatividade&quot;,badgeLabel = &quot;NOVO&quot;,
+               badgeColor = &quot;green&quot;),
       hr(style = &quot;border-top: 1px solid white;&quot;),
+
       checkboxGroupInput(
         inputId = &quot;geracao&quot;,
         label = &quot;Gerações&quot;,
-        choices = paste(&quot;Geração&quot;,geracoes),
-        selected = &quot;Geração 1&quot;)
+        inline=FALSE,
+        choiceValues = geracoes,
+        choiceNames = paste(&quot;Geração&quot;,geracoes),
+        selected = 1)
     ),
-    actionButton(&quot;atualizar&quot;, &quot;Incluir&quot;)
+    fluidRow(
+      column(
+        width = 12,
+        actionButton(&quot;atualizar&quot;, &quot;Incluir&quot;)
+      )
+    )
   ),
+
   body = dashboardBody(
     use_theme(meu_tema),
     tags$link(
@@ -209,45 +232,512 @@ ui &lt;- dashboardPage(
       href = &quot;custom.css&quot;
     ),
 
-    #Página 04 - Com o Código
-    tabItem(
-      tabName = &quot;code&quot;,
-      fluidRow(
-        column(
-          width = 12,
-          h1(&quot;Código em R&quot;)
+# Página 1 ui_visao_geral ----------------------------------------------------------
+    tabItems(
+      tabItem(
+        tabName = &quot;visao&quot;,
+        fluidRow(
+          box(
+            width = 6,
+            &quot;Quantidade por tipo&quot;,
+            plotOutput(&quot;boxplot_3&quot;),
+            height = &quot;615px&quot;
+          ),
+          fluidRow(
+            column(
+              width = 6,
+              infoBoxOutput(&quot;pesadoT&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem1T&quot;)),
+              infoBoxOutput(&quot;altoT&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem2T&quot;)),
+              infoBoxOutput(&quot;hpT&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem3T&quot;)),
+              infoBoxOutput(&quot;ataqueT&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem4T&quot;)),
+              infoBoxOutput(&quot;defesaT&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem5T&quot;)),
+              infoBoxOutput(&quot;velocidadeT&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem6T&quot;)),
+            )
+          )
         )
       ),
-      hr(style = &quot;border-top: 1px solid black;&quot;), # tag horizontal row style para mudar o css
-      br(),
-      includeHTML(&quot;../05_code.html&quot;)
-    )
 
+# Página 2 ui_01_tipo --------------------------------------------------------------
+
+      tabItem(
+        tabName = &quot;tipo&quot;,
+        fluidRow(
+          box(
+            width = 12,
+            fluidRow(
+              column(
+                width = 3,
+                selectInput(
+                  &quot;tipo&quot;,
+                  &quot;Tipo&quot;,
+                  choices = tipos,
+                  selected = &quot;grama&quot;
+                )
+              ),
+              infoBoxOutput(&quot;apenas_1&quot;,width = 3),
+              infoBoxOutput(&quot;primeiro_tipo&quot;,width = 3),
+              infoBoxOutput(&quot;segundo_tipo&quot;,width = 3)
+            )
+          ),
+          br(),
+          box(
+            width = 6,
+            &quot;Distribuição dos status&quot;,
+            plotOutput(&quot;boxplot_2&quot;),
+            height = &quot;615px&quot;
+          ),
+          fluidRow(
+            column(
+              width = 6,
+              infoBoxOutput(&quot;pesado&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem1&quot;)),
+              infoBoxOutput(&quot;alto&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem2&quot;)),
+              infoBoxOutput(&quot;hp&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem3&quot;)),
+              infoBoxOutput(&quot;ataque&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem4&quot;)),
+              infoBoxOutput(&quot;defesa&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem5&quot;)),
+              infoBoxOutput(&quot;velocidade&quot;,width = 8),
+              column(width = 4,uiOutput(&quot;imagem6&quot;)),
+
+            )
+          )
+        )
+      ),
+
+# Página 3 ui_compara tipo ---------------------------------------------------------
+      tabItem(
+        tabName = &quot;comparando&quot;,
+        fluidRow(
+          box(
+            width = 12,
+            fluidRow(
+              column(
+                width = 6,
+                selectInput(
+                  &quot;tipo_1&quot;,
+                  &quot;Tipo 1&quot;,
+                  choices = tipos,
+                  selected = &quot;água&quot;
+                )
+              ),
+              column(
+                width = 6,
+                selectInput(
+                  &quot;tipo_2&quot;,
+                  &quot;Tipo 2&quot;,
+                  choices = tipos,
+                  selected = &quot;fogo&quot;
+                )
+              )
+            )
+          )
+        ),
+        br(),
+        fluidRow(
+          column(
+            width = 12,
+            plotOutput(&quot;boxplot&quot;)
+          )
+        )
+      ),
+
+# Página 4 ui_código ---------------------------------------------------------------
+      tabItem(
+        tabName = &quot;codigo&quot;,
+        fluidRow(
+          column(
+            width = 12,
+            h1(&quot;Código em R&quot;)
+          )
+        ),
+        hr(style = &quot;border-top: 1px solid black;&quot;), # tag horizontal row style para mudar o css
+        br(),
+        includeHTML(&quot;code.html&quot;)
+      ),
+
+# Página 5 ui_reactlog -------------------------------------------------------------
+      tabItem(
+        tabName = &quot;reatividade&quot;,
+        fluidRow(
+          column(
+            width = 12,
+            h1(&quot;mapa de reatividade&quot;)
+          )
+        ),
+        hr(style = &quot;border-top: 1px solid black;&quot;), # tag horizontal row style para mudar o css
+        br(),
+        uiOutput(&quot;reatividade&quot;)
+      )
+    )
   ),
   title = &quot;Pokemon Dashboard&quot;
-
 )
 
 server &lt;- function(input, output, session) {
+  pkmn &lt;- &quot;pkmn.rds&quot; |&gt; readr::read_rds()
 
+  cores &lt;- pkmn |&gt;
+    filter(!is.na(cor_1),!is.na(cor_2)) |&gt;
+    pivot_longer(cols = cor_1,
+                 names_to = &quot;pos&quot;,
+                 values_to = &quot;cor&quot;) |&gt;
+    group_by(tipo_1,cor) |&gt;
+    summarise(n=n()) |&gt;
+    mutate(MAX = max(n,na.rm=TRUE)) |&gt;
+    filter(n==MAX) |&gt;
+    select(tipo_1, cor)
+
+  pega_stats &lt;- function(df, stat, filtro=&quot;&quot;){
+    if(filtro == &quot;&quot;){
+      df |&gt; arrange(desc(.data[[stat]])) |&gt; slice(1)
+    }else{
+      df |&gt;filter(tipo_1 == filtro | tipo_2 == filtro) |&gt;
+        arrange(desc(.data[[stat]])) |&gt; slice(1)
+    }
+  }
+
+  base_pkmn &lt;- eventReactive(input$atualizar, ignoreNULL = FALSE,{
+    req(input$geracao)
+    pkmn |&gt;
+      filter(id_geracao %in% input$geracao)
+  })
+
+# Pagina 1 - server -------------------------------------------------------
+  output$boxplot_3 &lt;- renderPlot({
+    #req(input$geracao)
+    tipo_bx3 &lt;- base_pkmn() |&gt;
+      pivot_longer(
+        cols = starts_with(&quot;tipo&quot;),
+        names_to = &quot;tipo_&quot;,
+        values_to = &quot;tipo&quot;)|&gt;
+      filter(!is.na(tipo)) |&gt;
+      pull(tipo) |&gt;
+      unique()
+
+    base_pkmn() |&gt;
+      pivot_longer(
+        cols = starts_with(&quot;tipo&quot;),
+        names_to = &quot;tipo_&quot;,
+        values_to = &quot;tipo&quot;)|&gt;
+      filter(!is.na(tipo)) |&gt;
+      group_by(tipo) |&gt;
+      summarise(n  = n()) |&gt;
+      mutate(
+        tipo = tipo |&gt;
+          fct_lump(n=18, w = n) |&gt;
+          fct_reorder(n)
+      )  |&gt;
+      ggplot(aes(x=n,y=tipo)) +
+      geom_col(fill = cores |&gt; filter(tipo_1 %in% tipo_bx3) |&gt; pull(cor))+
+      theme_minimal()
+
+  }, height = 570)
+
+  output$pesadoT &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIS PESADO&quot;,
+      value = paste(pega_stats(base_pkmn(),&quot;peso&quot;)$peso,&quot; Kg&quot;),
+      icon = icon(&quot;weight-hanging&quot;),
+      subtitle = pega_stats(base_pkmn(),&quot;peso&quot;)$pokemon,
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$altoT &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIS ALTO&quot;,
+      value = paste(pega_stats(base_pkmn(),&quot;altura&quot;)$altura,&quot; m&quot;),
+      icon = icon(&quot;long-arrow-alt-up&quot;),
+      subtitle = pega_stats(base_pkmn(),&quot;altura&quot;)$pokemon,
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$hpT &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIOR HP&quot;,
+      subtitle = pega_stats(base_pkmn(),&quot;hp&quot;)$pokemon,
+      value = pega_stats(base_pkmn(),&quot;hp&quot;)$hp,
+      icon = icon(&quot;heart&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$ataqueT &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIOR ATAQUE&quot;,
+      value = pega_stats(base_pkmn(),&quot;ataque&quot;)$ataque,
+      subtitle = pega_stats(base_pkmn(),&quot;ataque&quot;)$pokemon,
+      icon = icon(&quot;hand-rock&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$defesaT &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIOR DEFESA&quot;,
+      value = pega_stats(base_pkmn(),&quot;defesa&quot;)$defesa,
+      subtitle = pega_stats(base_pkmn(),&quot;defesa&quot;)$pokemon,
+      icon = icon(&quot;shield-alt&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$velocidadeT &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIS RÁPIDO&quot;,
+      value = pega_stats(base_pkmn(),&quot;velocidade&quot;)$velocidade,
+      subtitle = pega_stats(base_pkmn(),&quot;velocidade&quot;)$pokemon,
+      icon = icon(&quot;angle-double-right&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$imagem1T &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;peso&quot;)$url_imagem, width = &quot;100px&quot;)
+  })
+
+  output$imagem2T &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;altura&quot;)$url_imagem, width = &quot;100px&quot;)
+  })
+
+  output$imagem3T &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;hp&quot;)$url_imagem, width = &quot;100px&quot;)
+  })
+
+  output$imagem4T &lt;- renderUI({
+    img(src =pega_stats(base_pkmn(),&quot;ataque&quot;)$url_imagem, width = &quot;100px&quot;)
+  })
+
+  output$imagem5T &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;defesa&quot;)$url_imagem, width = &quot;100px&quot;)
+  })
+
+  output$imagem6T &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;velocidade&quot;)$url_imagem, width = &quot;100px&quot;)
+  })
+
+
+# Página 2 - server -------------------------------------------------------
+  output$pesado &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIS PESADO&quot;,
+      value = paste(pega_stats(base_pkmn(),&quot;peso&quot;,input$tipo)$peso,&quot; Kg&quot;),
+      icon = icon(&quot;weight-hanging&quot;),
+      subtitle = pega_stats(base_pkmn(),&quot;peso&quot;,input$tipo)$pokemon,
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$alto &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIS ALTO&quot;,
+      value = paste(pega_stats(base_pkmn(),&quot;altura&quot;,input$tipo)$altura,&quot; m&quot;),
+      icon = icon(&quot;long-arrow-alt-up&quot;),
+      subtitle = pega_stats(base_pkmn(),&quot;altura&quot;,input$tipo)$pokemon,
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$hp &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIOR HP&quot;,
+      subtitle = pega_stats(base_pkmn(),&quot;hp&quot;,input$tipo)$pokemon,
+      value = pega_stats(base_pkmn(),&quot;hp&quot;,input$tipo)$hp,
+      icon = icon(&quot;heart&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$ataque &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIOR ATAQUE&quot;,
+      value = pega_stats(base_pkmn(),&quot;ataque&quot;,input$tipo)$ataque,
+      subtitle = pega_stats(base_pkmn(),&quot;ataque&quot;,input$tipo)$pokemon,
+      icon = icon(&quot;hand-rock&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$defesa &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIOR DEFESA&quot;,
+      value = pega_stats(base_pkmn(),&quot;defesa&quot;,input$tipo)$defesa,
+      subtitle = pega_stats(base_pkmn(),&quot;defesa&quot;,input$tipo)$pokemon,
+      icon = icon(&quot;shield-alt&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$velocidade &lt;- renderInfoBox({
+    infoBox(
+      title = &quot;MAIS RÁPIDO&quot;,
+      value = pega_stats(base_pkmn(),&quot;velocidade&quot;,input$tipo)$velocidade,
+      subtitle = pega_stats(base_pkmn(),&quot;velocidade&quot;,input$tipo)$pokemon,
+      icon = icon(&quot;angle-double-right&quot;),
+      fill = TRUE,
+      color=&quot;red&quot;
+    )
+  })
+
+  output$apenas_1 &lt;- renderInfoBox({
+    num_tipo_1 &lt;- base_pkmn() |&gt;
+      filter(
+        tipo_1 == input$tipo,
+        is.na(tipo_2)
+      ) |&gt;
+      nrow()
+
+    infoBox(
+      title = paste0(&quot;APENAS &quot;, str_to_upper(input$tipo)),
+      value = num_tipo_1,
+      icon = icon(&quot;hashtag&quot;),
+      fill = TRUE,
+      color=&quot;light-blue&quot;,
+      width = 3,
+    )
+  })
+
+  output$primeiro_tipo&lt;- renderInfoBox({
+    num_primeiro_tipo &lt;- base_pkmn() |&gt;
+      filter(
+        tipo_1 == input$tipo &amp; !is.na(tipo_2) ) |&gt;
+      nrow()
+
+    infoBox(
+      title = &quot;PRIMEIRO TIPO&quot;,
+      value = num_primeiro_tipo,
+      icon = icon(&quot;hashtag&quot;),
+      fill = TRUE,
+      color=&quot;light-blue&quot;,
+      width = 3
+    )
+  })
+
+  output$segundo_tipo&lt;- renderInfoBox({
+    num_segundo_tipo &lt;- base_pkmn() |&gt;
+      filter(
+        tipo_2 == input$tipo) |&gt;
+      nrow()
+
+    infoBox(
+      title = &quot;SEGUNDO TIPO&quot;,
+      value = num_segundo_tipo,
+      icon = icon(&quot;hashtag&quot;),
+      fill = TRUE,
+      color=&quot;light-blue&quot;,
+      width = 3
+    )
+  })
+
+  output$boxplot_2 &lt;- renderPlot({
+   # req(input$tipo)
+    base_pkmn() |&gt;
+      filter(tipo_1 == input$tipo | tipo_2 == input$tipo) |&gt;
+      pivot_longer(
+        cols = hp:velocidade,
+        names_to = &quot;stats&quot;,
+        values_to = &quot;valor&quot;
+      ) |&gt;
+      group_by(stats) |&gt;
+      ggplot(aes(x=stats,y=valor)) +
+      geom_boxplot()+
+      theme_minimal()
+  }, height = 570)
+
+  output$imagem1 &lt;- renderUI({
+    maior_hp&lt;- base_pkmn() |&gt; #slice(1)
+      filter(id_geracao %in% input$geracao,tipo_1 == input$tipo) |&gt;
+      group_by(url_imagem) |&gt;
+      summarise( max = max(hp)) |&gt;
+      arrange(desc(max)) |&gt; slice(1)
+    img(src = pega_stats(base_pkmn(),&quot;peso&quot;,input$tipo)$url_imagem,
+        width = &quot;100px&quot;)
+  })
+
+  output$imagem2 &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;altura&quot;,input$tipo)$url_imagem,
+        width = &quot;100px&quot;)
+  })
+
+  output$imagem3 &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;hp&quot;,input$tipo)$url_imagem,
+        width = &quot;100px&quot;)
+  })
+
+  output$imagem4 &lt;- renderUI({
+    img(src =pega_stats(base_pkmn(),&quot;ataque&quot;,input$tipo)$url_imagem,
+        width = &quot;100px&quot;)
+  })
+
+  output$imagem5 &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;defesa&quot;,input$tipo)$url_imagem,
+        width = &quot;100px&quot;)
+  })
+
+  output$imagem6 &lt;- renderUI({
+    img(src = pega_stats(base_pkmn(),&quot;velocidade&quot;,input$tipo)$url_imagem,
+        width = &quot;100px&quot;)
+  })
+
+
+# Página 3 - server -------------------------------------------------------
+  output$boxplot &lt;- renderPlot({
+    #req(input$tipo_1)
+    df&lt;-base_pkmn() |&gt;
+      pivot_longer(
+        cols = starts_with(&quot;tipo&quot;),
+        names_to = &quot;tipo_&quot;,
+        values_to = &quot;tipo&quot;) |&gt;
+      filter(tipo == input$tipo_1 | tipo == input$tipo_2) |&gt;
+      pivot_longer(
+        cols = hp:velocidade,
+        names_to = &quot;stats&quot;,
+        values_to = &quot;valor&quot;
+      )
+
+    p&lt;- df |&gt;
+      group_by(tipo,stats) |&gt;
+      ggplot(aes(x=stats,y=valor, fill=tipo)) +
+      geom_boxplot()+
+      theme_minimal()
+
+    p+scale_fill_manual(values=c(cores |&gt;
+                                    filter(tipo_1==input$tipo_1) |&gt;
+                                    pull(cor),
+                                 cores |&gt;
+                                    filter(tipo_1==input$tipo_2) |&gt;
+                                    pull(cor)
+    ))
+  })
+
+# Página 5 - server --------------------------------------------------------
+  output$reatividade &lt;- renderUI({
+    img(src = &quot;mapa_reatividade.png&quot;,
+        width = &quot;1200px&quot;)
+  })
 }
-
 shinyApp(ui, server)</code></pre>
-</div>
-<div id="wwwcustom.css" class="section level2">
-<h2>www/custom.css</h2>
-<pre class="r"><code>.skin-blue .main-header .navbar {
-    background-color: #4c51bd;
-}
-
-.skin-blue .main-header .logo {
-    background-color: #4c51bd;
-}
-
-.skin-blue .main-header .logo {
-    color: #e9f614;
-    font-family: &quot;Pokemon Solid&quot;;
-}</code></pre>
 </div>
 
 
